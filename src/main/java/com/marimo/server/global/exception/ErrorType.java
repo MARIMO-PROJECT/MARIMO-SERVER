@@ -17,7 +17,7 @@ public enum ErrorType {
     TYPE_MISMATCH_ERROR(HttpStatus.BAD_REQUEST, 40005, "유효하지 않은 값이 입력되었습니다."),
     INVALID_REQUEST_BODY_ERROR(HttpStatus.BAD_REQUEST, 40006, "유효하지 않은 Request Body입니다. 요청 형식 또는 필드를 확인하세요."),
     DATA_INTEGRITY_VIOLATION_ERROR(HttpStatus.BAD_REQUEST, 40007, "데이터 무결성 제약 조건을 위반했습니다."),
-    INVALID_ATTACHMENT_TYPE_ERROR(HttpStatus.BAD_REQUEST, 40008, "유효하지 않은 attachmentType입니다."),
+    INVALID_PRODUCT_TYPE_ERROR(HttpStatus.BAD_REQUEST, 40008, "유효하지 않은 productType입니다."),
 
     INVALID_INFORMATION_ERROR(HttpStatus.BAD_REQUEST, 40010, "올바른 정보를 입력해 주세요."),
 
