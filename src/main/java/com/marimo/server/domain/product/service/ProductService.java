@@ -19,7 +19,7 @@ public class ProductService {
     @Transactional(readOnly = true)
     public BannerListResponse fetchBanners(final ProductType productType) {
         List<BannerEntity> bannerEntities =
-                bannerRepository.findAllByProductTypeOrderById(productType);
+                bannerRepository.findAllByProductTypeAndActiveTrueOrderById(productType);
 
         List<BannerResponse> bannerResponses = bannerEntities.stream()
                 .map(banner -> BannerResponse.of(

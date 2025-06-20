@@ -7,5 +7,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface BannerRepository extends JpaRepository<BannerEntity, Long> {
 
-    List<BannerEntity> findAllByProductTypeOrderById(final ProductType productType);
+    List<BannerEntity> findAllByProductTypeAndActiveTrueOrderById(final ProductType productType);
 }
