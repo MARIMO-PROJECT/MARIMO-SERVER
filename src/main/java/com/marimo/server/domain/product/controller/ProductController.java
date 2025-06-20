@@ -24,7 +24,7 @@ public class ProductController {
     public ResponseEntity<BannerListResponse> getBanners(
             @RequestParam(name = "productType") final String productTypeString
     ) {
-        ProductType productType = ProductType.valueOf(productTypeString);
+        ProductType productType = ProductType.fromValue(productTypeString);
 
         return ResponseEntity.ok(
                 productService.fetchBanners(productType)
