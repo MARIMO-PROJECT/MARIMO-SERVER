@@ -16,7 +16,6 @@ import com.marimo.server.domain.product.repository.InvitationRepository;
 import com.marimo.server.domain.product.repository.ProductImageRepository;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -66,13 +65,12 @@ public class ProductService {
                         ));
 
         List<InvitationResponse> invitationResponses = invitationRepository.findAllByOrderById().stream()
+                .filter(invitation ->
+                        invitationImageMap.containsKey(invitation.getId())
+                                && invitationOptionMap.containsKey(invitation.getId()))
                 .map(invitation -> {
                     String image = invitationImageMap.get(invitation.getId());
                     InvitationOptionEntity option = invitationOptionMap.get(invitation.getId());
-
-                    if (image == null || option == null) {
-                        return null;
-                    }
 
                     return InvitationResponse.of(
                             invitation.getId(),
@@ -84,7 +82,6 @@ public class ProductService {
                             option.getName()
                     );
                 })
-                .filter(Objects::nonNull)
                 .toList();
 
         return InvitationListResponse.of(invitationResponses);
