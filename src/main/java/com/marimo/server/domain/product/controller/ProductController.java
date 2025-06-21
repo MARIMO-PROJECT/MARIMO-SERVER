@@ -1,6 +1,7 @@
 package com.marimo.server.domain.product.controller;
 
 import com.marimo.server.domain.product.dto.BannerListResponse;
+import com.marimo.server.domain.product.dto.InvitationListResponse;
 import com.marimo.server.domain.product.enums.ProductType;
 import com.marimo.server.domain.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,13 @@ public class ProductController {
 
         return ResponseEntity.ok(
                 productService.fetchBanners(productType)
+        );
+    }
+
+    @GetMapping(path = "invitations", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<InvitationListResponse> getInvitations() {
+        return ResponseEntity.ok(
+                productService.fetchInvitations()
         );
     }
 }
