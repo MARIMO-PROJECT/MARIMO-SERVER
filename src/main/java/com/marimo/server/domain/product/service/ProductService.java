@@ -5,7 +5,6 @@ import com.marimo.server.domain.product.dto.BannerResponse;
 import com.marimo.server.domain.product.dto.InvitationListResponse;
 import com.marimo.server.domain.product.dto.InvitationResponse;
 import com.marimo.server.domain.product.entity.BannerEntity;
-import com.marimo.server.domain.product.entity.InvitationEntity;
 import com.marimo.server.domain.product.entity.InvitationOptionEntity;
 import com.marimo.server.domain.product.entity.ProductImageEntity;
 import com.marimo.server.domain.product.enums.ImageType;
@@ -15,8 +14,11 @@ import com.marimo.server.domain.product.repository.BannerRepository;
 import com.marimo.server.domain.product.repository.InvitationOptionRepository;
 import com.marimo.server.domain.product.repository.InvitationRepository;
 import com.marimo.server.domain.product.repository.ProductImageRepository;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,8 +34,8 @@ public class ProductService {
 
     @Transactional(readOnly = true)
     public BannerListResponse fetchBanners(final ProductType productType) {
-        List<BannerEntity> bannerEntities = bannerRepository.findAllByProductTypeAndActiveTrueOrderByIdDesc(
-                productType);
+        List<BannerEntity> bannerEntities =
+                bannerRepository.findAllByProductTypeAndActiveTrueOrderByIdDesc(productType);
 
         List<BannerResponse> bannerResponses = bannerEntities.stream()
                 .map(banner -> BannerResponse.of(
@@ -47,40 +49,43 @@ public class ProductService {
 
     @Transactional(readOnly = true)
     public InvitationListResponse fetchInvitations() {
-        List<InvitationEntity> invitationEntities = invitationRepository.findAllByOrderById();
-        List<ProductImageEntity> productImageEntities =
-                productImageRepository.findAllByImageTypeOrderByProductIdAscIdAsc(ImageType.INVITATION);
-        List<InvitationOptionEntity> invitationOptionEntities =
-                invitationOptionRepository.findAllByOptionTypeOrderById(OptionType.QUANTITY);
-        List<InvitationResponse> invitationResponses = new ArrayList<>();
+        Map<Long, String> invitationImageMap =
+                productImageRepository.findAllByImageTypeOrderById(ImageType.INVITATION).stream()
+                        .collect(Collectors.toMap(
+                                ProductImageEntity::getProductId,
+                                ProductImageEntity::getImageUrl,
+                                (existing, replacement) -> existing
+                        ));
 
-        for (InvitationEntity invitation : invitationEntities) {
-            ProductImageEntity productImage = productImageEntities.stream()
-                    .filter(image -> image.getProductId().equals(invitation.getId()))
-                    .findFirst()
-                    .orElse(null);
+        Map<Long, InvitationOptionEntity> invitationOptionMap =
+                invitationOptionRepository.findAllByOptionTypeOrderById(OptionType.QUANTITY).stream()
+                        .collect(Collectors.toMap(
+                                InvitationOptionEntity::getInvitationId,
+                                Function.identity(),
+                                (existing, replacement) -> existing
+                        ));
 
-            InvitationOptionEntity invitationOption = invitationOptionEntities.stream()
-                    .filter(option -> option.getInvitationId().equals(invitation.getId()))
-                    .findFirst()
-                    .orElse(null);
+        List<InvitationResponse> invitationResponses = invitationRepository.findAllByOrderById().stream()
+                .map(invitation -> {
+                    String image = invitationImageMap.get(invitation.getId());
+                    InvitationOptionEntity option = invitationOptionMap.get(invitation.getId());
 
-            if (productImage == null || invitationOption == null) {
-                continue;
-            }
+                    if (image == null || option == null) {
+                        return null;
+                    }
 
-            invitationResponses.add(
-                    InvitationResponse.of(
+                    return InvitationResponse.of(
                             invitation.getId(),
-                            productImage.getImageUrl(),
+                            image,
                             invitation.getHasBundle(),
                             invitation.getName(),
                             invitation.getDiscountRate(),
-                            invitationOption.getPrice(),
-                            invitationOption.getName()
-                    )
-            );
-        }
+                            option.getPrice(),
+                            option.getName()
+                    );
+                })
+                .filter(Objects::nonNull)
+                .toList();
 
         return InvitationListResponse.of(invitationResponses);
     }
