@@ -2,7 +2,10 @@ package com.marimo.server.domain.product.enums;
 
 import java.util.HashMap;
 import java.util.Map;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public enum OptionType {
 
     QUANTITY,
