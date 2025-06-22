@@ -32,7 +32,7 @@ public class ProductController {
         );
     }
 
-    @GetMapping(path = "invitations", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/invitations", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<InvitationListResponse> getInvitations() {
         return ResponseEntity.ok(
                 productService.fetchInvitations()
