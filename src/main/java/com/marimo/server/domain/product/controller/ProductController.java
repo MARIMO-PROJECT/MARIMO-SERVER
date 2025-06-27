@@ -4,6 +4,7 @@ import com.marimo.server.domain.product.dto.BannerListResponse;
 import com.marimo.server.domain.product.dto.InvitationListResponse;
 import com.marimo.server.domain.product.enums.ProductType;
 import com.marimo.server.domain.product.service.ProductService;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +24,7 @@ public class ProductController {
 
     @GetMapping(path = "/banners", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BannerListResponse> getBanners(
+            @NotBlank(message = "productType은 공백일 수 없습니다.")
             @RequestParam(name = "productType") final String productTypeString
     ) {
         ProductType productType = ProductType.fromValue(productTypeString);
