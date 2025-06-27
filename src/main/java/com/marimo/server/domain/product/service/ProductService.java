@@ -2,9 +2,13 @@ package com.marimo.server.domain.product.service;
 
 import com.marimo.server.domain.product.dto.BannerListResponse;
 import com.marimo.server.domain.product.dto.BannerResponse;
+import com.marimo.server.domain.product.dto.InvitationDetailResponse;
 import com.marimo.server.domain.product.dto.InvitationListResponse;
 import com.marimo.server.domain.product.dto.InvitationResponse;
+import com.marimo.server.domain.product.dto.OptionGroupResponse;
+import com.marimo.server.domain.product.dto.OptionResponse;
 import com.marimo.server.domain.product.entity.BannerEntity;
+import com.marimo.server.domain.product.entity.InvitationEntity;
 import com.marimo.server.domain.product.entity.InvitationOptionEntity;
 import com.marimo.server.domain.product.entity.ProductImageEntity;
 import com.marimo.server.domain.product.enums.ImageType;
@@ -14,6 +18,7 @@ import com.marimo.server.domain.product.repository.BannerRepository;
 import com.marimo.server.domain.product.repository.InvitationOptionRepository;
 import com.marimo.server.domain.product.repository.InvitationRepository;
 import com.marimo.server.domain.product.repository.ProductImageRepository;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -87,5 +92,59 @@ public class ProductService {
                 .toList();
 
         return InvitationListResponse.of(invitationResponses);
+    }
+
+    @Transactional(readOnly = true)
+    public InvitationDetailResponse fetchInvitationDetail(final Long invitationId) {
+        InvitationEntity invitationEntity = invitationRepository.findByIdOrElseThrow(invitationId);
+
+        List<ProductImageEntity> productImageEntities =
+                productImageRepository.findAllByProductIdOrderById(invitationId);
+
+        String mainImageUrl = productImageEntities.stream()
+                .filter(productImage -> productImage.getImageType() == ImageType.INVITATION)
+                .findFirst()
+                .map(ProductImageEntity::getImageUrl)
+                .orElse("https://avatars.githubusercontent.com/u/198884528?s=200&v=4"); // TODO: 기본 이미지 생기면 변경
+
+        List<String> detailImages = productImageEntities.stream()
+                .filter(productImage -> productImage.getImageType() == ImageType.INVITATION_DETAIL)
+                .map(ProductImageEntity::getImageUrl)
+                .toList();
+
+        Map<OptionType, List<OptionResponse>> optionListMap =
+                invitationOptionRepository.findAllByInvitationIdOrderById(invitationId).stream()
+                        .collect(Collectors.groupingBy(
+                                InvitationOptionEntity::getOptionType,
+                                Collectors.mapping(option -> OptionResponse.of(
+                                        option.getId(),
+                                        option.getName(),
+                                        option.getOptionDetail(),
+                                        option.getPrice()
+                                ), Collectors.toUnmodifiableList())
+                        ));
+
+        int price = optionListMap.getOrDefault(OptionType.QUANTITY, List.of()).stream()
+                .mapToInt(OptionResponse::price)
+                .min()
+                .orElse(0);
+
+        List<OptionGroupResponse> optionGroupResponses = Arrays.stream(OptionType.values())
+                .map(optionType -> OptionGroupResponse.of(
+                        optionType,
+                        optionListMap.getOrDefault(optionType, List.of())
+                ))
+                .filter(optionGroup -> !optionGroup.optionList().isEmpty())
+                .toList();
+
+        return InvitationDetailResponse.of(
+                mainImageUrl,
+                invitationEntity.getName(),
+                invitationEntity.getDiscountRate(),
+                price,
+                invitationEntity.getDescription(),
+                optionGroupResponses,
+                detailImages
+        );
     }
 }

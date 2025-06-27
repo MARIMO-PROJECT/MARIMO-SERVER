@@ -8,4 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface InvitationOptionRepository extends JpaRepository<InvitationOptionEntity, Long> {
 
     List<InvitationOptionEntity> findAllByOptionTypeOrderById(final OptionType optionType);
+
+    List<InvitationOptionEntity> findAllByInvitationIdOrderById(final Long invitationId);
 }
