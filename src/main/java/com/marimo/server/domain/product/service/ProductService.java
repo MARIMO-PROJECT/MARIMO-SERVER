@@ -61,7 +61,9 @@ public class ProductService {
                         .collect(Collectors.toMap(
                                 InvitationOptionEntity::getInvitationId,
                                 Function.identity(),
-                                (existing, replacement) -> existing
+                                (existing, replacement) -> existing.getPrice() <= replacement.getPrice()
+                                        ? existing
+                                        : replacement
                         ));
 
         List<InvitationResponse> invitationResponses = invitationRepository.findAllByOrderById().stream()
