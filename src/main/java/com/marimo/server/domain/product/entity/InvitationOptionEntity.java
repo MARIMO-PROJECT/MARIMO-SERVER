@@ -37,7 +37,7 @@ public class InvitationOptionEntity {
     @Column(name = "name", length = 20, nullable = false)
     private String name;
 
-    @Column(name = "option_detail", length = 30, nullable = false)
+    @Column(name = "option_detail", length = 30)
     private String optionDetail;
 
     @Column(name = "price", nullable = false)
