@@ -3,6 +3,7 @@ package com.marimo.server.domain.product.controller;
 import com.marimo.server.domain.product.dto.BannerListResponse;
 import com.marimo.server.domain.product.dto.InvitationDetailResponse;
 import com.marimo.server.domain.product.dto.InvitationListResponse;
+import com.marimo.server.domain.product.dto.PreVideoListResponse;
 import com.marimo.server.domain.product.enums.ProductType;
 import com.marimo.server.domain.product.service.ProductService;
 import jakarta.validation.constraints.NotBlank;
@@ -53,6 +54,13 @@ public class ProductController {
     ) {
         return ResponseEntity.ok(
                 productService.fetchInvitationDetail(invitationId)
+        );
+    }
+
+    @GetMapping(path = "/pre-videos", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<PreVideoListResponse> getPreVideos() {
+        return ResponseEntity.ok(
+                productService.fetchPreVideos()
         );
     }
 }
