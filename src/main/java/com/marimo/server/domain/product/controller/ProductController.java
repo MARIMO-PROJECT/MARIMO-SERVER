@@ -3,6 +3,7 @@ package com.marimo.server.domain.product.controller;
 import com.marimo.server.domain.product.dto.BannerListResponse;
 import com.marimo.server.domain.product.dto.InvitationDetailResponse;
 import com.marimo.server.domain.product.dto.InvitationListResponse;
+import com.marimo.server.domain.product.dto.PreVideoDetailResponse;
 import com.marimo.server.domain.product.dto.PreVideoListResponse;
 import com.marimo.server.domain.product.enums.ProductType;
 import com.marimo.server.domain.product.service.ProductService;
@@ -61,6 +62,17 @@ public class ProductController {
     public ResponseEntity<PreVideoListResponse> getPreVideos() {
         return ResponseEntity.ok(
                 productService.fetchPreVideos()
+        );
+    }
+
+    @GetMapping(path = "/pre-videos/{preVideoId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<PreVideoDetailResponse> getPreVideoDetail(
+            @NotNull(message = "preVideoId는 필수입니다.")
+            @Positive(message = "preVideoId는 양수여야 합니다.")
+            @PathVariable(name = "preVideoId") final Long preVideoId
+    ) {
+        return ResponseEntity.ok(
+                productService.fetchPreVideoDetail(preVideoId)
         );
     }
 }

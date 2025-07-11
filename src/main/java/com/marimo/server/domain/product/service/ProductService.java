@@ -7,11 +7,13 @@ import com.marimo.server.domain.product.dto.InvitationListResponse;
 import com.marimo.server.domain.product.dto.InvitationResponse;
 import com.marimo.server.domain.product.dto.OptionGroupResponse;
 import com.marimo.server.domain.product.dto.OptionResponse;
+import com.marimo.server.domain.product.dto.PreVideoDetailResponse;
 import com.marimo.server.domain.product.dto.PreVideoListResponse;
 import com.marimo.server.domain.product.dto.PreVideoResponse;
 import com.marimo.server.domain.product.entity.BannerEntity;
 import com.marimo.server.domain.product.entity.InvitationEntity;
 import com.marimo.server.domain.product.entity.InvitationOptionEntity;
+import com.marimo.server.domain.product.entity.PreVideoEntity;
 import com.marimo.server.domain.product.entity.ProductImageEntity;
 import com.marimo.server.domain.product.enums.ImageType;
 import com.marimo.server.domain.product.enums.OptionType;
@@ -176,5 +178,26 @@ public class ProductService {
                 .toList();
 
         return PreVideoListResponse.of(preVideoResponses);
+    }
+
+    @Transactional(readOnly = true)
+    public PreVideoDetailResponse fetchPreVideoDetail(final Long preVideoId) {
+        String mainImageUrl =
+                productImageRepository.findFirstImageUrlByImageTypeAndProductId(
+                                ImageType.PREVIDEO.name(),
+                                preVideoId
+                        )
+                        .orElse("https://avatars.githubusercontent.com/u/198884528?s=200&v=4"); // TODO: 기본 이미지 생기면 변경
+
+        PreVideoEntity preVideoEntity = preVideoRepository.findByIdOrElseThrow(preVideoId);
+
+        return PreVideoDetailResponse.of(
+                mainImageUrl,
+                preVideoEntity.getName(),
+                preVideoEntity.getDiscountRate(),
+                preVideoEntity.getPrice(),
+                preVideoEntity.getDescription(),
+                preVideoEntity.getSampleVideoUrl()
+        );
     }
 }
