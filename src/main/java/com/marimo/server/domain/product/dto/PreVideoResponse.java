@@ -1,32 +1,29 @@
 package com.marimo.server.domain.product.dto;
 
-public record InvitationResponse(
+public record PreVideoResponse(
         Long id,
         String imageUrl,
-        Boolean hasBundle,
+        String sampleVideoUrl,
         String name,
         Integer discountRate,
-        Integer price,
-        String quantity
+        Integer price
 ) {
 
-    public static InvitationResponse of(
+    public static PreVideoResponse of(
             final Long id,
             final String imageUrl,
-            final Boolean hasBundle,
+            final String sampleVideoUrl,
             final String name,
             final Integer discountRate,
-            final Integer price,
-            final String quantity
+            final Integer price
     ) {
-        return new InvitationResponse(
+        return new PreVideoResponse(
                 id,
                 imageUrl,
-                hasBundle,
+                sampleVideoUrl,
                 name,
                 discountRate,
-                price,
-                quantity
+                price
         );
     }
 }

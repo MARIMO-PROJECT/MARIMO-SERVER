@@ -7,6 +7,8 @@ import com.marimo.server.domain.product.dto.InvitationListResponse;
 import com.marimo.server.domain.product.dto.InvitationResponse;
 import com.marimo.server.domain.product.dto.OptionGroupResponse;
 import com.marimo.server.domain.product.dto.OptionResponse;
+import com.marimo.server.domain.product.dto.PreVideoListResponse;
+import com.marimo.server.domain.product.dto.PreVideoResponse;
 import com.marimo.server.domain.product.entity.BannerEntity;
 import com.marimo.server.domain.product.entity.InvitationEntity;
 import com.marimo.server.domain.product.entity.InvitationOptionEntity;
@@ -17,6 +19,7 @@ import com.marimo.server.domain.product.enums.ProductType;
 import com.marimo.server.domain.product.repository.BannerRepository;
 import com.marimo.server.domain.product.repository.InvitationOptionRepository;
 import com.marimo.server.domain.product.repository.InvitationRepository;
+import com.marimo.server.domain.product.repository.PreVideoRepository;
 import com.marimo.server.domain.product.repository.ProductImageRepository;
 import java.util.Arrays;
 import java.util.List;
@@ -32,9 +35,10 @@ import org.springframework.transaction.annotation.Transactional;
 public class ProductService {
 
     private final BannerRepository bannerRepository;
-    private final InvitationRepository invitationRepository;
-    private final ProductImageRepository productImageRepository;
     private final InvitationOptionRepository invitationOptionRepository;
+    private final InvitationRepository invitationRepository;
+    private final PreVideoRepository preVideoRepository;
+    private final ProductImageRepository productImageRepository;
 
     @Transactional(readOnly = true)
     public BannerListResponse fetchBanners(final ProductType productType) {
@@ -53,13 +57,7 @@ public class ProductService {
 
     @Transactional(readOnly = true)
     public InvitationListResponse fetchInvitations() {
-        Map<Long, String> invitationImageMap =
-                productImageRepository.findAllByImageTypeOrderById(ImageType.INVITATION).stream()
-                        .collect(Collectors.toMap(
-                                ProductImageEntity::getProductId,
-                                ProductImageEntity::getImageUrl,
-                                (existing, replacement) -> existing
-                        ));
+        Map<Long, String> invitationImageMap = findImageMapByImageType(ImageType.INVITATION);
 
         Map<Long, InvitationOptionEntity> invitationOptionMap =
                 invitationOptionRepository.findAllByOptionTypeOrderById(OptionType.QUANTITY).stream()
@@ -76,12 +74,12 @@ public class ProductService {
                         invitationImageMap.containsKey(invitation.getId())
                                 && invitationOptionMap.containsKey(invitation.getId()))
                 .map(invitation -> {
-                    String image = invitationImageMap.get(invitation.getId());
+                    String imageUrl = invitationImageMap.get(invitation.getId());
                     InvitationOptionEntity option = invitationOptionMap.get(invitation.getId());
 
                     return InvitationResponse.of(
                             invitation.getId(),
-                            image,
+                            imageUrl,
                             invitation.getHasBundle(),
                             invitation.getName(),
                             invitation.getDiscountRate(),
@@ -92,6 +90,15 @@ public class ProductService {
                 .toList();
 
         return InvitationListResponse.of(invitationResponses);
+    }
+
+    private Map<Long, String> findImageMapByImageType(ImageType imageType) {
+        return productImageRepository.findAllByImageTypeOrderById(imageType).stream()
+                .collect(Collectors.toMap(
+                        ProductImageEntity::getProductId,
+                        ProductImageEntity::getImageUrl,
+                        (existing, replacement) -> existing
+                ));
     }
 
     @Transactional(readOnly = true)
@@ -146,5 +153,28 @@ public class ProductService {
                 optionGroupResponses,
                 detailImages
         );
+    }
+
+    @Transactional(readOnly = true)
+    public PreVideoListResponse fetchPreVideos() {
+        Map<Long, String> preVideoImageMap = findImageMapByImageType(ImageType.PREVIDEO);
+
+        List<PreVideoResponse> preVideoResponses = preVideoRepository.findAllByOrderById().stream()
+                .filter(preVideo -> preVideoImageMap.containsKey(preVideo.getId()))
+                .map(preVideo -> {
+                    String imageUrl = preVideoImageMap.get(preVideo.getId());
+
+                    return PreVideoResponse.of(
+                            preVideo.getId(),
+                            imageUrl,
+                            preVideo.getSampleVideoUrl(),
+                            preVideo.getName(),
+                            preVideo.getDiscountRate(),
+                            preVideo.getPrice()
+                    );
+                })
+                .toList();
+
+        return PreVideoListResponse.of(preVideoResponses);
     }
 }

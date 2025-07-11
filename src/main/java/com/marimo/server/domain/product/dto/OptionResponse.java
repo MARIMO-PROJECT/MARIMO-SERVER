@@ -17,6 +17,11 @@ public record OptionResponse(
             final String optionDetail,
             final Integer price
     ) {
-        return new OptionResponse(id, name, optionDetail, price);
+        return new OptionResponse(
+                id,
+                name,
+                optionDetail,
+                price
+        );
     }
 }
