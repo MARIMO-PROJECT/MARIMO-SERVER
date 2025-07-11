@@ -19,6 +19,14 @@ public record InvitationResponse(
             final Integer price,
             final String quantity
     ) {
-        return new InvitationResponse(id, imageUrl, hasBundle, name, discountRate, price, quantity);
+        return new InvitationResponse(
+                id,
+                imageUrl,
+                hasBundle,
+                name,
+                discountRate,
+                price,
+                quantity
+        );
     }
 }

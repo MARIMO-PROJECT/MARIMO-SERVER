@@ -80,12 +80,12 @@ public class ProductService {
                         invitationImageMap.containsKey(invitation.getId())
                                 && invitationOptionMap.containsKey(invitation.getId()))
                 .map(invitation -> {
-                    String image = invitationImageMap.get(invitation.getId());
+                    String imageUrl = invitationImageMap.get(invitation.getId());
                     InvitationOptionEntity option = invitationOptionMap.get(invitation.getId());
 
                     return InvitationResponse.of(
                             invitation.getId(),
-                            image,
+                            imageUrl,
                             invitation.getHasBundle(),
                             invitation.getName(),
                             invitation.getDiscountRate(),
