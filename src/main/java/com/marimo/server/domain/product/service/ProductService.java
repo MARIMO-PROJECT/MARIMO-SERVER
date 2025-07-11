@@ -57,13 +57,7 @@ public class ProductService {
 
     @Transactional(readOnly = true)
     public InvitationListResponse fetchInvitations() {
-        Map<Long, String> invitationImageMap =
-                productImageRepository.findAllByImageTypeOrderById(ImageType.INVITATION).stream()
-                        .collect(Collectors.toMap(
-                                ProductImageEntity::getProductId,
-                                ProductImageEntity::getImageUrl,
-                                (existing, replacement) -> existing
-                        ));
+        Map<Long, String> invitationImageMap = findImageMapByImageType(ImageType.INVITATION);
 
         Map<Long, InvitationOptionEntity> invitationOptionMap =
                 invitationOptionRepository.findAllByOptionTypeOrderById(OptionType.QUANTITY).stream()
@@ -96,6 +90,15 @@ public class ProductService {
                 .toList();
 
         return InvitationListResponse.of(invitationResponses);
+    }
+
+    private Map<Long, String> findImageMapByImageType(ImageType imageType) {
+        return productImageRepository.findAllByImageTypeOrderById(imageType).stream()
+                .collect(Collectors.toMap(
+                        ProductImageEntity::getProductId,
+                        ProductImageEntity::getImageUrl,
+                        (existing, replacement) -> existing
+                ));
     }
 
     @Transactional(readOnly = true)
@@ -154,13 +157,7 @@ public class ProductService {
 
     @Transactional(readOnly = true)
     public PreVideoListResponse fetchPreVideos() {
-        Map<Long, String> preVideoImageMap =
-                productImageRepository.findAllByImageTypeOrderById(ImageType.PREVIDEO).stream()
-                        .collect(Collectors.toMap(
-                                ProductImageEntity::getProductId,
-                                ProductImageEntity::getImageUrl,
-                                (existing, replacement) -> existing
-                        ));
+        Map<Long, String> preVideoImageMap = findImageMapByImageType(ImageType.PREVIDEO);
 
         List<PreVideoResponse> preVideoResponses = preVideoRepository.findAllByOrderById().stream()
                 .filter(preVideo -> preVideoImageMap.containsKey(preVideo.getId()))
