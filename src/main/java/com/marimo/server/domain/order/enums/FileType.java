@@ -1,5 +1,7 @@
 package com.marimo.server.domain.order.enums;
 
+import com.marimo.server.global.exception.BusinessException;
+import com.marimo.server.global.exception.ErrorType;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.AccessLevel;
@@ -28,7 +30,7 @@ public enum FileType {
         FileType fileType = FILE_TYPE_MAP.get(value.toUpperCase());
 
         if (fileType == null) {
-            throw new IllegalArgumentException("Invalid FileType: " + value);
+            throw new BusinessException(ErrorType.INVALID_FILE_TYPE_ERROR);
         }
 
         return fileType;

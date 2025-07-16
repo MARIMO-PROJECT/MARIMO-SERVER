@@ -20,6 +20,7 @@ import com.marimo.server.domain.order.entity.InvitationOrderEntity;
 import com.marimo.server.domain.order.entity.OrderAttachmentEntity;
 import com.marimo.server.domain.order.entity.OrderEntity;
 import com.marimo.server.domain.order.enums.AttachmentType;
+import com.marimo.server.domain.order.enums.FileType;
 import com.marimo.server.domain.order.repository.InvitationOrderRepository;
 import com.marimo.server.domain.order.repository.OrderAttachmentRepository;
 import com.marimo.server.domain.order.repository.OrderRepository;
@@ -236,36 +237,44 @@ public class OrderService {
         List<OrderAttachmentEntity> orderAttachmentEntities = new ArrayList<>();
 
         // 종이 청첩장 메인 이미지
-        if (hasText(paperInvitationInfo.mainImage())) {
+        String paperInvitationMainImage = paperInvitationInfo.mainImage();
+
+        if (hasText(paperInvitationMainImage)) {
             orderAttachmentEntities.add(
                     OrderAttachmentEntity.builder()
                             .orderId(orderId)
                             .attachmentType(AttachmentType.PAPER_INVITATION_MAIN)
-                            .fileUrl(paperInvitationInfo.mainImage())
+                            .fileType(extractFileTypeFromUrl(paperInvitationMainImage))
+                            .fileUrl(paperInvitationMainImage)
                             .build()
             );
         }
 
         // 모바일 청첩장 메인 이미지
-        if (hasMobileInvitation && mobileInvitationInfo != null && hasText(mobileInvitationInfo.mainImage())) {
+        String mobileInvitationMainImage =
+                (hasMobileInvitation && mobileInvitationInfo != null) ? mobileInvitationInfo.mainImage() : null;
+
+        if (hasText(mobileInvitationMainImage)) {
             orderAttachmentEntities.add(
                     OrderAttachmentEntity.builder()
                             .orderId(orderId)
                             .attachmentType(AttachmentType.MOBILE_INVITATION_MAIN)
-                            .fileUrl(mobileInvitationInfo.mainImage())
+                            .fileType(extractFileTypeFromUrl(mobileInvitationMainImage))
+                            .fileUrl(mobileInvitationMainImage)
                             .build()
             );
         }
 
         // 갤러리 이미지
         if (Boolean.TRUE.equals(hasGallery) && gallery != null) {
-            for (String url : gallery.imageList()) {
-                if (hasText(url)) {
+            for (String fileUrl : gallery.imageList()) {
+                if (hasText(fileUrl)) {
                     orderAttachmentEntities.add(
                             OrderAttachmentEntity.builder()
                                     .orderId(orderId)
                                     .attachmentType(AttachmentType.GALLERY)
-                                    .fileUrl(url)
+                                    .fileType(extractFileTypeFromUrl(fileUrl))
+                                    .fileUrl(fileUrl)
                                     .build()
                     );
                 }
@@ -274,13 +283,14 @@ public class OrderService {
 
         // 기타 요청사항 첨부파일
         if (hasAdditionalRequest && additionalRequest != null) {
-            for (String url : additionalRequest.attachmentList()) {
-                if (hasText(url)) {
+            for (String fileUrl : additionalRequest.attachmentList()) {
+                if (hasText(fileUrl)) {
                     orderAttachmentEntities.add(
                             OrderAttachmentEntity.builder()
                                     .orderId(orderId)
                                     .attachmentType(AttachmentType.INVITATION_REQUEST)
-                                    .fileUrl(url)
+                                    .fileType(extractFileTypeFromUrl(fileUrl))
+                                    .fileUrl(fileUrl)
                                     .build()
                     );
                 }
@@ -312,5 +322,15 @@ public class OrderService {
         String suffix = String.format("%04d", randomNumber);
 
         return ORDER_CODE_PREFIX + datePart + "-" + suffix;
+    }
+
+    private FileType extractFileTypeFromUrl(String fileUrl) {
+        if (!fileUrl.contains(".")) {
+            throw new BusinessException(ErrorType.INVALID_FILE_TYPE_ERROR);
+        }
+
+        String fileExtension = fileUrl.substring(fileUrl.lastIndexOf('.') + 1);
+
+        return FileType.fromValue(fileExtension);
     }
 }
