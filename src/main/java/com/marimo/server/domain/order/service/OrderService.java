@@ -56,27 +56,27 @@ public class OrderService {
             throw new BusinessException(ErrorType.NOT_FOUND_INVITATION_ERROR);
         }
 
-        CustomerInfo ci = request.customerInfo();
-        InvitationCommonInfo ici = request.invitationCommonInfo();
-        PaperInvitationInfo pii = request.paperInvitationInfo();
+        CustomerInfo customerInfo = request.customerInfo();
+        InvitationCommonInfo invitationCommonInfo = request.invitationCommonInfo();
+        PaperInvitationInfo paperInvitationInfo = request.paperInvitationInfo();
 
         boolean hasCharterBus = request.hasCharterBus();
-        CharterBus cb = hasCharterBus ? request.charterBus() : null;
+        CharterBus charterBus = hasCharterBus ? request.charterBus() : null;
 
         boolean hasReception = request.hasReception();
         Reception reception = hasReception ? request.reception() : null;
 
         boolean hasMobileInvitation = request.hasMobileInvitation();
-        MobileInvitationInfo mii = hasMobileInvitation ? request.mobileInvitationInfo() : null;
+        MobileInvitationInfo mobileInvitationInfo = hasMobileInvitation ? request.mobileInvitationInfo() : null;
 
         Boolean hasGallery = request.hasGallery();
         Gallery gallery = Boolean.TRUE.equals(hasGallery) ? request.gallery() : null;
 
         Boolean hasContactOption = request.hasContactOption();
-        ContactOption co = Boolean.TRUE.equals(hasContactOption) ? request.contactOption() : null;
+        ContactOption contactOption = Boolean.TRUE.equals(hasContactOption) ? request.contactOption() : null;
 
         Boolean hasGiftAccount = request.hasGiftAccount();
-        GiftAccount ga = Boolean.TRUE.equals(hasGiftAccount) ? request.giftAccount() : null;
+        GiftAccount giftAccount = Boolean.TRUE.equals(hasGiftAccount) ? request.giftAccount() : null;
 
         Boolean hasCalendar = request.hasCalendar();
         Boolean hasMapNavigation = request.hasMapNavigation();
@@ -88,27 +88,27 @@ public class OrderService {
         Rsvp rsvp = Boolean.TRUE.equals(hasRsvp) ? request.rsvp() : null;
 
         boolean hasAdditionalRequest = request.hasAdditionalRequest();
-        AdditionalRequestInfo ari = hasAdditionalRequest ? request.additionalRequest() : null;
+        AdditionalRequestInfo additionalRequest = hasAdditionalRequest ? request.additionalRequest() : null;
 
         OrderEntity orderEntity = OrderEntity.builder()
                 .productType(ProductType.INVITATION)
                 .productId(request.invitationId())
                 .code(generateUniqueOrderCode())
-                .customerName(ci.name())
-                .zoneCode(ci.zoneCode())
-                .address(ci.address())
-                .detailAddress(ci.detailAddress())
-                .phoneNumber(ci.phoneNumber())
-                .email(ci.email())
-                .hasGroomChristianName(ici.hasGroomChristianName())
-                .groomName(ici.groomName())
-                .groomChristianName(ici.groomChristianName())
-                .hasBrideChristianName(ici.hasBrideChristianName())
-                .brideName(ici.brideName())
-                .brideChristianName(ici.brideChristianName())
-                .weddingDatetime(ici.weddingDatetime())
+                .customerName(customerInfo.name())
+                .zoneCode(customerInfo.zoneCode())
+                .address(customerInfo.address())
+                .detailAddress(customerInfo.detailAddress())
+                .phoneNumber(customerInfo.phoneNumber())
+                .email(customerInfo.email())
+                .hasGroomChristianName(invitationCommonInfo.hasGroomChristianName())
+                .groomName(invitationCommonInfo.groomName())
+                .groomChristianName(invitationCommonInfo.groomChristianName())
+                .hasBrideChristianName(invitationCommonInfo.hasBrideChristianName())
+                .brideName(invitationCommonInfo.brideName())
+                .brideChristianName(invitationCommonInfo.brideChristianName())
+                .weddingDatetime(invitationCommonInfo.weddingDatetime())
                 .hasAdditionalRequest(hasAdditionalRequest)
-                .requestText(ari != null ? ari.requestText() : null)
+                .requestText(additionalRequest != null ? additionalRequest.requestText() : null)
                 .build();
 
         OrderEntity savedOrder = orderRepository.save(orderEntity);
@@ -121,38 +121,70 @@ public class OrderService {
                 .optionList(request.optionList())
 
                 // 혼주
-                .groomFatherDeceased(ici.groomFatherDeceased())
-                .hasGroomFatherChristianName(ici.hasGroomFatherChristianName())
-                .groomFatherName(ici.groomFatherDeceased() ? null : ici.groomFatherName())
-                .groomFatherChristianName(ici.hasGroomFatherChristianName() ? ici.groomFatherChristianName() : null)
+                .groomFatherDeceased(invitationCommonInfo.groomFatherDeceased())
+                .hasGroomFatherChristianName(invitationCommonInfo.hasGroomFatherChristianName())
+                .groomFatherName(
+                        invitationCommonInfo.groomFatherDeceased()
+                                ? null
+                                : invitationCommonInfo.groomFatherName()
+                )
+                .groomFatherChristianName(
+                        invitationCommonInfo.hasGroomFatherChristianName()
+                                ? invitationCommonInfo.groomFatherChristianName()
+                                : null
+                )
 
-                .groomMotherDeceased(ici.groomMotherDeceased())
-                .hasGroomMotherChristianName(ici.hasGroomMotherChristianName())
-                .groomMotherName(ici.groomMotherDeceased() ? null : ici.groomMotherName())
-                .groomMotherChristianName(ici.hasGroomMotherChristianName() ? ici.groomMotherChristianName() : null)
+                .groomMotherDeceased(invitationCommonInfo.groomMotherDeceased())
+                .hasGroomMotherChristianName(invitationCommonInfo.hasGroomMotherChristianName())
+                .groomMotherName(
+                        invitationCommonInfo.groomMotherDeceased()
+                                ? null
+                                : invitationCommonInfo.groomMotherName()
+                )
+                .groomMotherChristianName(
+                        invitationCommonInfo.hasGroomMotherChristianName()
+                                ? invitationCommonInfo.groomMotherChristianName()
+                                : null
+                )
 
-                .brideFatherDeceased(ici.brideFatherDeceased())
-                .hasBrideFatherChristianName(ici.hasBrideFatherChristianName())
-                .brideFatherName(ici.brideFatherDeceased() ? null : ici.brideFatherName())
-                .brideFatherChristianName(ici.hasBrideFatherChristianName() ? ici.brideFatherChristianName() : null)
+                .brideFatherDeceased(invitationCommonInfo.brideFatherDeceased())
+                .hasBrideFatherChristianName(invitationCommonInfo.hasBrideFatherChristianName())
+                .brideFatherName(
+                        invitationCommonInfo.brideFatherDeceased()
+                                ? null
+                                : invitationCommonInfo.brideFatherName()
+                )
+                .brideFatherChristianName(
+                        invitationCommonInfo.hasBrideFatherChristianName()
+                                ? invitationCommonInfo.brideFatherChristianName()
+                                : null
+                )
 
-                .brideMotherDeceased(ici.brideMotherDeceased())
-                .hasBrideMotherChristianName(ici.hasBrideMotherChristianName())
-                .brideMotherName(ici.brideMotherDeceased() ? null : ici.brideMotherName())
-                .brideMotherChristianName(ici.hasBrideMotherChristianName() ? ici.brideMotherChristianName() : null)
+                .brideMotherDeceased(invitationCommonInfo.brideMotherDeceased())
+                .hasBrideMotherChristianName(invitationCommonInfo.hasBrideMotherChristianName())
+                .brideMotherName(
+                        invitationCommonInfo.brideMotherDeceased()
+                                ? null
+                                : invitationCommonInfo.brideMotherName()
+                )
+                .brideMotherChristianName(
+                        invitationCommonInfo.hasBrideMotherChristianName()
+                                ? invitationCommonInfo.brideMotherChristianName()
+                                : null
+                )
 
                 // 예식장
-                .weddingVenueZoneCode(ici.weddingVenueZoneCode())
-                .weddingVenueAddress(ici.weddingVenueAddress())
-                .weddingVenueDetailAddress(ici.weddingVenueDetailAddress())
+                .weddingVenueZoneCode(invitationCommonInfo.weddingVenueZoneCode())
+                .weddingVenueAddress(invitationCommonInfo.weddingVenueAddress())
+                .weddingVenueDetailAddress(invitationCommonInfo.weddingVenueDetailAddress())
 
                 // 종이 청첩장
-                .paperInvitationMessage(pii.message())
+                .paperInvitationMessage(paperInvitationInfo.message())
 
                 // 전세버스
                 .hasCharterBus(hasCharterBus)
-                .busStopLocation(cb != null ? cb.busStopLocation() : null)
-                .busStopTimeList(cb != null ? cb.busStopTimeList() : null)
+                .busStopLocation(charterBus != null ? charterBus.busStopLocation() : null)
+                .busStopTimeList(charterBus != null ? charterBus.busStopTimeList() : null)
 
                 // 피로연
                 .hasReception(hasReception)
@@ -161,25 +193,25 @@ public class OrderService {
 
                 // 모바일 청첩장
                 .hasMobileInvitation(hasMobileInvitation)
-                .mobileInvitationUrl(mii != null ? mii.urlPath() : null)
-                .mobileInvitationMessage(mii != null ? mii.message() : null)
+                .mobileInvitationUrl(mobileInvitationInfo != null ? mobileInvitationInfo.urlPath() : null)
+                .mobileInvitationMessage(mobileInvitationInfo != null ? mobileInvitationInfo.message() : null)
 
                 // 갤러리
                 .hasGallery(hasGallery)
 
                 // 전화걸기
                 .hasContactOption(hasContactOption)
-                .groomFatherPhoneNumber(co != null ? co.groomFatherPhoneNumber() : null)
-                .groomMotherPhoneNumber(co != null ? co.groomMotherPhoneNumber() : null)
-                .groomPhoneNumber(co != null ? co.groomPhoneNumber() : null)
-                .brideFatherPhoneNumber(co != null ? co.brideFatherPhoneNumber() : null)
-                .brideMotherPhoneNumber(co != null ? co.brideMotherPhoneNumber() : null)
-                .bridePhoneNumber(co != null ? co.bridePhoneNumber() : null)
+                .groomFatherPhoneNumber(contactOption != null ? contactOption.groomFatherPhoneNumber() : null)
+                .groomMotherPhoneNumber(contactOption != null ? contactOption.groomMotherPhoneNumber() : null)
+                .groomPhoneNumber(contactOption != null ? contactOption.groomPhoneNumber() : null)
+                .brideFatherPhoneNumber(contactOption != null ? contactOption.brideFatherPhoneNumber() : null)
+                .brideMotherPhoneNumber(contactOption != null ? contactOption.brideMotherPhoneNumber() : null)
+                .bridePhoneNumber(contactOption != null ? contactOption.bridePhoneNumber() : null)
 
                 // 축의금계좌
                 .hasGiftAccount(hasGiftAccount)
-                .groomGiftAccountList(ga != null ? ga.groomGiftAccountList() : null)
-                .brideGiftAccountList(ga != null ? ga.brideGiftAccountList() : null)
+                .groomGiftAccountList(giftAccount != null ? giftAccount.groomGiftAccountList() : null)
+                .brideGiftAccountList(giftAccount != null ? giftAccount.brideGiftAccountList() : null)
 
                 // 달력
                 .hasCalendar(hasCalendar)
@@ -204,23 +236,23 @@ public class OrderService {
         List<OrderAttachmentEntity> orderAttachmentEntities = new ArrayList<>();
 
         // 종이 청첩장 메인 이미지
-        if (hasText(pii.mainImage())) {
+        if (hasText(paperInvitationInfo.mainImage())) {
             orderAttachmentEntities.add(
                     OrderAttachmentEntity.builder()
                             .orderId(orderId)
                             .attachmentType(AttachmentType.PAPER_INVITATION_MAIN)
-                            .fileUrl(pii.mainImage())
+                            .fileUrl(paperInvitationInfo.mainImage())
                             .build()
             );
         }
 
         // 모바일 청첩장 메인 이미지
-        if (hasMobileInvitation && mii != null && hasText(mii.mainImage())) {
+        if (hasMobileInvitation && mobileInvitationInfo != null && hasText(mobileInvitationInfo.mainImage())) {
             orderAttachmentEntities.add(
                     OrderAttachmentEntity.builder()
                             .orderId(orderId)
                             .attachmentType(AttachmentType.MOBILE_INVITATION_MAIN)
-                            .fileUrl(mii.mainImage())
+                            .fileUrl(mobileInvitationInfo.mainImage())
                             .build()
             );
         }
@@ -241,8 +273,8 @@ public class OrderService {
         }
 
         // 기타 요청사항 첨부파일
-        if (hasAdditionalRequest && ari != null) {
-            for (String url : ari.attachmentList()) {
+        if (hasAdditionalRequest && additionalRequest != null) {
+            for (String url : additionalRequest.attachmentList()) {
                 if (hasText(url)) {
                     orderAttachmentEntities.add(
                             OrderAttachmentEntity.builder()
