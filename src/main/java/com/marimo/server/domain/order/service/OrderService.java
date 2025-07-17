@@ -203,7 +203,7 @@ public class OrderService {
 
                 // 모바일 청첩장
                 .hasMobileInvitation(hasMobileInvitation)
-                .mobileInvitationUrl(mobileInvitationInfo != null ? mobileInvitationInfo.urlPath() : null)
+                .mobileInvitationUrlSlug(mobileInvitationInfo != null ? mobileInvitationInfo.urlSlug() : null)
                 .mobileInvitationMessage(mobileInvitationInfo != null ? mobileInvitationInfo.message() : null)
 
                 // 갤러리

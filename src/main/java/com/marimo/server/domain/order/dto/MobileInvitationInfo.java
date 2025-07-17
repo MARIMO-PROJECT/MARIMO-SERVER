@@ -5,9 +5,9 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public record MobileInvitationInfo(
-        @NotBlank(message = "urlPath은 공백일 수 없습니다.")
-        @Pattern(regexp = "^[a-z0-9]{3,15}$", message = "urlPath는 영문 소문자와 숫자만 사용할 수 있으며 3~15자 사이여야 합니다.")
-        String urlPath,
+        @NotBlank(message = "urlSlug는 공백일 수 없습니다.")
+        @Pattern(regexp = "^[a-z0-9]{3,15}$", message = "urlSlug는 영문 소문자와 숫자만 사용할 수 있으며 3~15자 사이여야 합니다.")
+        String urlSlug,
 
         @NotBlank(message = "mainImage는 공백일 수 없습니다.")
         String mainImage,
