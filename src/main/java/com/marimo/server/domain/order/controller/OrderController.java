@@ -2,6 +2,7 @@ package com.marimo.server.domain.order.controller;
 
 import com.marimo.server.domain.order.dto.InvitationOrderRequest;
 import com.marimo.server.domain.order.dto.OrderResponse;
+import com.marimo.server.domain.order.dto.PreVideoOrderRequest;
 import com.marimo.server.domain.order.service.OrderService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -46,6 +47,19 @@ public class OrderController {
     ) {
         return ResponseEntity.ok(
                 orderService.createInvitationOrder(request)
+        );
+    }
+
+    @PostMapping(
+            path = "/orders/pre-videos",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    public ResponseEntity<OrderResponse> createPreVideoOrder(
+            @Valid @RequestBody final PreVideoOrderRequest request
+    ) {
+        return ResponseEntity.ok(
+                orderService.createPreVideoOrder(request)
         );
     }
 }

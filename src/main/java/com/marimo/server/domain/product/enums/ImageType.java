@@ -9,9 +9,9 @@ import lombok.RequiredArgsConstructor;
 public enum ImageType {
 
     INVITATION,
-    PREVIDEO,
+    PRE_VIDEO,
     INVITATION_DETAIL,
-    PREVIDEO_DETAIL,
+    PRE_VIDEO_DETAIL,
     ;
 
     private static final Map<String, ImageType> IMAGE_TYPE_MAP = new HashMap<>();

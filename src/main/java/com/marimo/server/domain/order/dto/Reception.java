@@ -12,10 +12,10 @@ public record Reception(
         @Size(max = 100, message = "address는 최대 100자여야 합니다.")
         String address,
 
-        @NotNull(message = "datetime은 필수입니다.")
-        @Future(message = "datetime은 현재보다 이후여야 합니다.")
+        @NotNull(message = "dateTime은 필수입니다.")
+        @Future(message = "dateTime은 현재보다 이후여야 합니다.")
         @JsonFormat(pattern = "yyyy-MM-dd HH시 mm분", timezone = "Asia/Seoul")
-        LocalDateTime datetime
+        LocalDateTime dateTime
 ) {
 
 }

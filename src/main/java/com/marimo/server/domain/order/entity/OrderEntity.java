@@ -54,7 +54,7 @@ public class OrderEntity extends BaseTimeEntity {
     @Column(name = "email", length = 100, nullable = false)
     private String email;
 
-    @Column(name = "has_groom_christian_name", nullable = false)
+    @Column(name = "has_groom_christian_name")
     private Boolean hasGroomChristianName;
 
     @Column(name = "groom_name", length = 30, nullable = false)
@@ -63,7 +63,7 @@ public class OrderEntity extends BaseTimeEntity {
     @Column(name = "groom_christian_name", length = 30)
     private String groomChristianName;
 
-    @Column(name = "has_bride_christian_name", nullable = false)
+    @Column(name = "has_bride_christian_name")
     private Boolean hasBrideChristianName;
 
     @Column(name = "bride_name", length = 30, nullable = false)
@@ -72,8 +72,8 @@ public class OrderEntity extends BaseTimeEntity {
     @Column(name = "bride_christian_name", length = 30)
     private String brideChristianName;
 
-    @Column(name = "wedding_datetime", nullable = false)
-    private LocalDateTime weddingDatetime;
+    @Column(name = "wedding_date_time", nullable = false)
+    private LocalDateTime weddingDateTime;
 
     @Column(name = "has_additional_request", nullable = false)
     private Boolean hasAdditionalRequest;
@@ -99,7 +99,7 @@ public class OrderEntity extends BaseTimeEntity {
             Boolean hasBrideChristianName,
             String brideName,
             String brideChristianName,
-            LocalDateTime weddingDatetime,
+            LocalDateTime weddingDateTime,
             Boolean hasAdditionalRequest,
             String requestText
     ) {
@@ -119,7 +119,7 @@ public class OrderEntity extends BaseTimeEntity {
         this.hasBrideChristianName = hasBrideChristianName;
         this.brideName = brideName;
         this.brideChristianName = brideChristianName;
-        this.weddingDatetime = weddingDatetime;
+        this.weddingDateTime = weddingDateTime;
         this.hasAdditionalRequest = hasAdditionalRequest;
         this.requestText = requestText;
     }

@@ -11,10 +11,10 @@ public enum AttachmentType {
     PAPER_INVITATION_MAIN,
     MOBILE_INVITATION_MAIN,
     GALLERY,
-    PREVIDEO_IMAGE,
-    PREVIDEO_VIDEO,
+    PRE_VIDEO_IMAGE,
+    PRE_VIDEO_VIDEO,
     INVITATION_REQUEST,
-    PREVIDEO_REQUEST,
+    PRE_VIDEO_REQUEST,
     ;
 
     private static final Map<String, AttachmentType> ATTACHMENT_TYPE_MAP = new HashMap<>();

@@ -85,10 +85,10 @@ public record InvitationCommonInfo(
         String brideChristianName,
 
         /* ---------- 예식 정보 ---------- */
-        @NotNull(message = "weddingDatetime은 필수입니다.")
-        @Future(message = "weddingDatetime은 현재보다 이후여야 합니다.")
+        @NotNull(message = "weddingDateTime은 필수입니다.")
+        @Future(message = "weddingDateTime은 현재보다 이후여야 합니다.")
         @JsonFormat(pattern = "yyyy-MM-dd HH시 mm분", timezone = "Asia/Seoul")
-        LocalDateTime weddingDatetime,
+        LocalDateTime weddingDateTime,
 
         @NotBlank(message = "weddingVenueZoneCode는 공백일 수 없습니다.")
         @Pattern(regexp = "\\d{5}", message = "weddingVenueZoneCode는 5자리 숫자여야 합니다.")

@@ -63,6 +63,7 @@ public record InvitationOrderRequest(
 
         @Valid Rsvp rsvp,
 
+        @NotNull(message = "hasAdditionalRequest는 필수입니다.")
         Boolean hasAdditionalRequest,
 
         @Valid AdditionalRequestInfo additionalRequest

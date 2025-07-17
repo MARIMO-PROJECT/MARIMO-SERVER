@@ -14,6 +14,8 @@ import com.marimo.server.domain.order.dto.InvitationOrderRequest;
 import com.marimo.server.domain.order.dto.MobileInvitationInfo;
 import com.marimo.server.domain.order.dto.OrderResponse;
 import com.marimo.server.domain.order.dto.PaperInvitationInfo;
+import com.marimo.server.domain.order.dto.PreVideoCommonInfo;
+import com.marimo.server.domain.order.dto.PreVideoOrderRequest;
 import com.marimo.server.domain.order.dto.Reception;
 import com.marimo.server.domain.order.dto.Rsvp;
 import com.marimo.server.domain.order.dto.SelectedOption;
@@ -30,12 +32,14 @@ import com.marimo.server.domain.product.enums.OptionType;
 import com.marimo.server.domain.product.enums.ProductType;
 import com.marimo.server.domain.product.repository.InvitationOptionRepository;
 import com.marimo.server.domain.product.repository.InvitationRepository;
+import com.marimo.server.domain.product.repository.PreVideoRepository;
 import com.marimo.server.global.exception.BusinessException;
 import com.marimo.server.global.exception.ErrorType;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -52,11 +56,16 @@ public class OrderService {
     private static final DateTimeFormatter ORDER_CODE_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd");
     private static final ZoneId SEOUL_TIME_ZONE = ZoneId.of("Asia/Seoul");
 
+    private static final EnumSet<FileType> IMAGE_FILE_TYPES = EnumSet.of(FileType.JPG, FileType.JPEG);
+    private static final EnumSet<FileType> PRE_VIDEO_FILE_TYPES = EnumSet.of(FileType.JPG, FileType.JPEG, FileType.MP4);
+    private static final EnumSet<FileType> ADDITIONAL_REQUEST_FILE_TYPES = EnumSet.allOf(FileType.class);
+
     private final InvitationRepository invitationRepository;
     private final InvitationOptionRepository invitationOptionRepository;
     private final InvitationOrderRepository invitationOrderRepository;
     private final OrderAttachmentRepository orderAttachmentRepository;
     private final OrderRepository orderRepository;
+    private final PreVideoRepository preVideoRepository;
 
     @Transactional(readOnly = true)
     public void validateUrlSlug(final String urlSlug) {
@@ -130,13 +139,12 @@ public class OrderService {
                 .hasBrideChristianName(invitationCommonInfo.hasBrideChristianName())
                 .brideName(invitationCommonInfo.brideName())
                 .brideChristianName(invitationCommonInfo.brideChristianName())
-                .weddingDatetime(invitationCommonInfo.weddingDatetime())
+                .weddingDateTime(invitationCommonInfo.weddingDateTime())
                 .hasAdditionalRequest(hasAdditionalRequest)
                 .requestText(additionalRequest != null ? additionalRequest.requestText() : null)
                 .build();
 
         OrderEntity savedOrder = orderRepository.save(orderEntity);
-
         Long orderId = savedOrder.getId();
 
         InvitationOrderEntity invitationOrderEntity = InvitationOrderEntity.builder()
@@ -214,7 +222,7 @@ public class OrderService {
                 // 피로연
                 .hasReception(hasReception)
                 .receptionAddress(reception != null ? reception.address() : null)
-                .receptionDatetime(reception != null ? reception.datetime() : null)
+                .receptionDateTime(reception != null ? reception.dateTime() : null)
 
                 // 모바일 청첩장
                 .hasMobileInvitation(hasMobileInvitation)
@@ -263,61 +271,49 @@ public class OrderService {
         // 종이 청첩장 메인 이미지
         String paperInvitationMainImage = paperInvitationInfo.mainImage();
 
-        if (hasText(paperInvitationMainImage)) {
-            orderAttachmentEntities.add(
-                    OrderAttachmentEntity.builder()
-                            .orderId(orderId)
-                            .attachmentType(AttachmentType.PAPER_INVITATION_MAIN)
-                            .fileType(extractFileTypeFromUrl(paperInvitationMainImage))
-                            .fileUrl(paperInvitationMainImage)
-                            .build()
-            );
-        }
+        validateAndAddAttachment(
+                orderAttachmentEntities,
+                orderId,
+                AttachmentType.PAPER_INVITATION_MAIN,
+                IMAGE_FILE_TYPES,
+                paperInvitationMainImage
+        );
 
         // 모바일 청첩장 메인 이미지
         String mobileInvitationMainImage =
                 (hasMobileInvitation && mobileInvitationInfo != null) ? mobileInvitationInfo.mainImage() : null;
 
-        if (hasText(mobileInvitationMainImage)) {
-            orderAttachmentEntities.add(
-                    OrderAttachmentEntity.builder()
-                            .orderId(orderId)
-                            .attachmentType(AttachmentType.MOBILE_INVITATION_MAIN)
-                            .fileType(extractFileTypeFromUrl(mobileInvitationMainImage))
-                            .fileUrl(mobileInvitationMainImage)
-                            .build()
-            );
-        }
+        validateAndAddAttachment(
+                orderAttachmentEntities,
+                orderId,
+                AttachmentType.MOBILE_INVITATION_MAIN,
+                IMAGE_FILE_TYPES,
+                mobileInvitationMainImage
+        );
 
         // 갤러리 이미지
         if (Boolean.TRUE.equals(hasGallery) && gallery != null) {
-            for (String fileUrl : gallery.imageList()) {
-                if (hasText(fileUrl)) {
-                    orderAttachmentEntities.add(
-                            OrderAttachmentEntity.builder()
-                                    .orderId(orderId)
-                                    .attachmentType(AttachmentType.GALLERY)
-                                    .fileType(extractFileTypeFromUrl(fileUrl))
-                                    .fileUrl(fileUrl)
-                                    .build()
-                    );
-                }
+            for (String imageUrl : gallery.imageList()) {
+                validateAndAddAttachment(
+                        orderAttachmentEntities,
+                        orderId,
+                        AttachmentType.GALLERY,
+                        IMAGE_FILE_TYPES,
+                        imageUrl
+                );
             }
         }
 
         // 기타 요청사항 첨부파일
         if (hasAdditionalRequest && additionalRequest != null) {
             for (String fileUrl : additionalRequest.attachmentList()) {
-                if (hasText(fileUrl)) {
-                    orderAttachmentEntities.add(
-                            OrderAttachmentEntity.builder()
-                                    .orderId(orderId)
-                                    .attachmentType(AttachmentType.INVITATION_REQUEST)
-                                    .fileType(extractFileTypeFromUrl(fileUrl))
-                                    .fileUrl(fileUrl)
-                                    .build()
-                    );
-                }
+                validateAndAddAttachment(
+                        orderAttachmentEntities,
+                        orderId,
+                        AttachmentType.INVITATION_REQUEST,
+                        ADDITIONAL_REQUEST_FILE_TYPES,
+                        fileUrl
+                );
             }
         }
 
@@ -387,6 +383,34 @@ public class OrderService {
         }
     }
 
+    private void validateAndAddAttachment(
+            final List<OrderAttachmentEntity> target,
+            final Long orderId,
+            AttachmentType baseAttachmentType,
+            final EnumSet<FileType> allowedFileTypes,
+            final String fileUrl
+    ) {
+        if (!hasText(fileUrl)) {
+            return;
+        }
+
+        FileType fileType = extractFileTypeFromUrl(fileUrl);
+        assertSupportedFileType(fileType, allowedFileTypes);
+
+        if (fileType == FileType.MP4 && baseAttachmentType == AttachmentType.PRE_VIDEO_IMAGE) {
+            baseAttachmentType = AttachmentType.PRE_VIDEO_VIDEO;
+        }
+
+        target.add(
+                OrderAttachmentEntity.builder()
+                        .orderId(orderId)
+                        .attachmentType(baseAttachmentType)
+                        .fileType(fileType)
+                        .fileUrl(fileUrl)
+                        .build()
+        );
+    }
+
     private FileType extractFileTypeFromUrl(final String fileUrl) {
         if (!fileUrl.contains(".")) {
             throw new BusinessException(ErrorType.INVALID_FILE_TYPE_ERROR);
@@ -395,5 +419,81 @@ public class OrderService {
         String fileExtension = fileUrl.substring(fileUrl.lastIndexOf('.') + 1);
 
         return FileType.fromValue(fileExtension);
+    }
+
+    private void assertSupportedFileType(
+            final FileType fileType,
+            final EnumSet<FileType> allowedFileTypes
+    ) {
+        if (!allowedFileTypes.contains(fileType)) {
+            throw new BusinessException(ErrorType.INVALID_FILE_TYPE_ERROR);
+        }
+    }
+
+    @Transactional
+    public OrderResponse createPreVideoOrder(final PreVideoOrderRequest request) {
+        long preVideoId = request.preVideoId();
+
+        if (!preVideoRepository.existsById(preVideoId)) {
+            throw new BusinessException(ErrorType.NOT_FOUND_PRE_VIDEO_ERROR);
+        }
+
+        CustomerInfo customerInfo = request.customerInfo();
+        PreVideoCommonInfo preVideoCommonInfo = request.preVideoCommonInfo();
+
+        boolean hasAdditionalRequest = request.hasAdditionalRequest();
+        AdditionalRequestInfo additionalRequest = hasAdditionalRequest ? request.additionalRequest() : null;
+
+        OrderEntity orderEntity = OrderEntity.builder()
+                .productType(ProductType.PRE_VIDEO)
+                .productId(preVideoId)
+                .code(generateUniqueOrderCode())
+                .customerName(customerInfo.name())
+                .zoneCode(customerInfo.zoneCode())
+                .address(customerInfo.address())
+                .detailAddress(customerInfo.detailAddress())
+                .phoneNumber(customerInfo.phoneNumber())
+                .email(customerInfo.email())
+                .groomName(preVideoCommonInfo.groomName())
+                .brideName(preVideoCommonInfo.brideName())
+                .weddingDateTime(preVideoCommonInfo.weddingDateTime())
+                .hasAdditionalRequest(hasAdditionalRequest)
+                .requestText(additionalRequest != null ? additionalRequest.requestText() : null)
+                .build();
+
+        OrderEntity savedOrder = orderRepository.save(orderEntity);
+        Long orderId = savedOrder.getId();
+
+        List<OrderAttachmentEntity> orderAttachmentEntities = new ArrayList<>();
+
+        // 식전영상 사진/영상
+        for (String mediaUrl : request.mediaList()) {
+            validateAndAddAttachment(
+                    orderAttachmentEntities,
+                    orderId,
+                    AttachmentType.PRE_VIDEO_IMAGE,
+                    PRE_VIDEO_FILE_TYPES,
+                    mediaUrl
+            );
+        }
+
+        // 기타 요청사항 첨부파일
+        if (hasAdditionalRequest && additionalRequest != null) {
+            for (String fileUrl : additionalRequest.attachmentList()) {
+                validateAndAddAttachment(
+                        orderAttachmentEntities,
+                        orderId,
+                        AttachmentType.PRE_VIDEO_REQUEST,
+                        ADDITIONAL_REQUEST_FILE_TYPES,
+                        fileUrl
+                );
+            }
+        }
+
+        if (!orderAttachmentEntities.isEmpty()) {
+            orderAttachmentRepository.saveAll(orderAttachmentEntities);
+        }
+
+        return OrderResponse.of(savedOrder.getCode());
     }
 }
