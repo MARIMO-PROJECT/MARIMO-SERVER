@@ -113,8 +113,8 @@ public class InvitationOrderEntity extends BaseTimeEntity {
     @Column(name = "has_mobile_invitation", nullable = false)
     private Boolean hasMobileInvitation;
 
-    @Column(name = "mobile_invitation_url", length = 20)
-    private String mobileInvitationUrl;
+    @Column(name = "mobile_invitation_url_slug", length = 20)
+    private String mobileInvitationUrlSlug;
 
     @Column(name = "mobile_invitation_message", length = 200)
     private String mobileInvitationMessage;
@@ -209,7 +209,7 @@ public class InvitationOrderEntity extends BaseTimeEntity {
             String receptionAddress,
             LocalDateTime receptionDatetime,
             Boolean hasMobileInvitation,
-            String mobileInvitationUrl,
+            String mobileInvitationUrlSlug,
             String mobileInvitationMessage,
             Boolean hasGallery,
             Boolean hasContactOption,
@@ -260,7 +260,7 @@ public class InvitationOrderEntity extends BaseTimeEntity {
         this.receptionAddress = receptionAddress;
         this.receptionDatetime = receptionDatetime;
         this.hasMobileInvitation = hasMobileInvitation;
-        this.mobileInvitationUrl = mobileInvitationUrl;
+        this.mobileInvitationUrlSlug = mobileInvitationUrlSlug;
         this.mobileInvitationMessage = mobileInvitationMessage;
         this.hasGallery = hasGallery;
         this.hasContactOption = hasContactOption;

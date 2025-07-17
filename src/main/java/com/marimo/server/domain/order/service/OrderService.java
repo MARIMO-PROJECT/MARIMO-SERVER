@@ -58,11 +58,28 @@ public class OrderService {
     private final OrderAttachmentRepository orderAttachmentRepository;
     private final OrderRepository orderRepository;
 
+    @Transactional(readOnly = true)
+    public void validateUrlSlug(final String urlSlug) {
+        if (invitationOrderRepository.existsByMobileInvitationUrlSlug(urlSlug)) {
+            throw new BusinessException(ErrorType.DUPLICATE_URL_SLUG_ERROR);
+        }
+    }
+
     @Transactional
-    public OrderResponse createInvitationOrder(InvitationOrderRequest request) {
-        if (!invitationRepository.existsById(request.invitationId())) {
+    public OrderResponse createInvitationOrder(final InvitationOrderRequest request) {
+        long invitationId = request.invitationId();
+
+        if (!invitationRepository.existsById(invitationId)) {
             throw new BusinessException(ErrorType.NOT_FOUND_INVITATION_ERROR);
         }
+
+        boolean hasMobileInvitation = request.hasMobileInvitation();
+
+        if (hasMobileInvitation) {
+            validateUrlSlug(request.mobileInvitationInfo().urlSlug());
+        }
+
+        validateSelectedOptions(invitationId, request.optionList());
 
         CustomerInfo customerInfo = request.customerInfo();
         InvitationCommonInfo invitationCommonInfo = request.invitationCommonInfo();
@@ -74,7 +91,6 @@ public class OrderService {
         boolean hasReception = request.hasReception();
         Reception reception = hasReception ? request.reception() : null;
 
-        boolean hasMobileInvitation = request.hasMobileInvitation();
         MobileInvitationInfo mobileInvitationInfo = hasMobileInvitation ? request.mobileInvitationInfo() : null;
 
         Boolean hasGallery = request.hasGallery();
@@ -100,7 +116,7 @@ public class OrderService {
 
         OrderEntity orderEntity = OrderEntity.builder()
                 .productType(ProductType.INVITATION)
-                .productId(request.invitationId())
+                .productId(invitationId)
                 .code(generateUniqueOrderCode())
                 .customerName(customerInfo.name())
                 .zoneCode(customerInfo.zoneCode())
@@ -122,7 +138,6 @@ public class OrderService {
         OrderEntity savedOrder = orderRepository.save(orderEntity);
 
         Long orderId = savedOrder.getId();
-        validateSelectedOptions(savedOrder.getProductId(), request.optionList());
 
         InvitationOrderEntity invitationOrderEntity = InvitationOrderEntity.builder()
                 .orderId(orderId)
@@ -203,7 +218,7 @@ public class OrderService {
 
                 // 모바일 청첩장
                 .hasMobileInvitation(hasMobileInvitation)
-                .mobileInvitationUrl(mobileInvitationInfo != null ? mobileInvitationInfo.urlPath() : null)
+                .mobileInvitationUrlSlug(mobileInvitationInfo != null ? mobileInvitationInfo.urlSlug() : null)
                 .mobileInvitationMessage(mobileInvitationInfo != null ? mobileInvitationInfo.message() : null)
 
                 // 갤러리
@@ -334,8 +349,8 @@ public class OrderService {
     }
 
     private void validateSelectedOptions(
-            Long invitationId,
-            List<SelectedOption> selectedOptions
+            final Long invitationId,
+            final List<SelectedOption> selectedOptions
     ) {
         Set<Long> optionIdSet = new HashSet<>();
 
@@ -372,7 +387,7 @@ public class OrderService {
         }
     }
 
-    private FileType extractFileTypeFromUrl(String fileUrl) {
+    private FileType extractFileTypeFromUrl(final String fileUrl) {
         if (!fileUrl.contains(".")) {
             throw new BusinessException(ErrorType.INVALID_FILE_TYPE_ERROR);
         }
