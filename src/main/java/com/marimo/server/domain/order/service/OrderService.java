@@ -67,9 +67,19 @@ public class OrderService {
 
     @Transactional
     public OrderResponse createInvitationOrder(final InvitationOrderRequest request) {
-        if (!invitationRepository.existsById(request.invitationId())) {
+        long invitationId = request.invitationId();
+
+        if (!invitationRepository.existsById(invitationId)) {
             throw new BusinessException(ErrorType.NOT_FOUND_INVITATION_ERROR);
         }
+
+        boolean hasMobileInvitation = request.hasMobileInvitation();
+
+        if (hasMobileInvitation) {
+            validateUrlSlug(request.mobileInvitationInfo().urlSlug());
+        }
+
+        validateSelectedOptions(invitationId, request.optionList());
 
         CustomerInfo customerInfo = request.customerInfo();
         InvitationCommonInfo invitationCommonInfo = request.invitationCommonInfo();
@@ -81,7 +91,6 @@ public class OrderService {
         boolean hasReception = request.hasReception();
         Reception reception = hasReception ? request.reception() : null;
 
-        boolean hasMobileInvitation = request.hasMobileInvitation();
         MobileInvitationInfo mobileInvitationInfo = hasMobileInvitation ? request.mobileInvitationInfo() : null;
 
         Boolean hasGallery = request.hasGallery();
@@ -107,7 +116,7 @@ public class OrderService {
 
         OrderEntity orderEntity = OrderEntity.builder()
                 .productType(ProductType.INVITATION)
-                .productId(request.invitationId())
+                .productId(invitationId)
                 .code(generateUniqueOrderCode())
                 .customerName(customerInfo.name())
                 .zoneCode(customerInfo.zoneCode())
@@ -129,7 +138,6 @@ public class OrderService {
         OrderEntity savedOrder = orderRepository.save(orderEntity);
 
         Long orderId = savedOrder.getId();
-        validateSelectedOptions(savedOrder.getProductId(), request.optionList());
 
         InvitationOrderEntity invitationOrderEntity = InvitationOrderEntity.builder()
                 .orderId(orderId)
