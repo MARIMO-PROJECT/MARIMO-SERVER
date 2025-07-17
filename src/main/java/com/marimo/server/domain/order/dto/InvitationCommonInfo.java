@@ -102,33 +102,61 @@ public record InvitationCommonInfo(
         String weddingVenueDetailAddress
 ) {
 
-    @AssertTrue(message = "hasGroomFatherChristianName이 true면 groomFatherChristianName은 필수입니다.")
-    private boolean isGroomFatherChristianNameConsistent() {
-        return Boolean.FALSE.equals(hasGroomFatherChristianName) || groomFatherChristianName != null;
+    private static boolean flagMatchesObj(Boolean flag, Object obj) {
+        if (flag == null) {
+            return false;
+        }
+
+        return flag == (obj != null);
     }
 
-    @AssertTrue(message = "hasGroomMotherChristianName이 true면 groomMotherChristianName은 필수입니다.")
-    private boolean isGroomMotherChristianNameConsistent() {
-        return Boolean.FALSE.equals(hasGroomMotherChristianName) || groomMotherChristianName != null;
+    @AssertTrue(message = "groomFatherDeceased와 groomFatherName의 상태가 일치하지 않습니다. (true → null, false → 필수)")
+    private boolean isGroomFatherNameStrict() {
+        return flagMatchesObj(!groomFatherDeceased, groomFatherName);
     }
 
-    @AssertTrue(message = "hasGroomChristianName이 true면 groomChristianName은 필수입니다.")
-    private boolean isGroomChristianNameConsistent() {
-        return Boolean.FALSE.equals(hasGroomChristianName) || groomChristianName != null;
+    @AssertTrue(message = "hasGroomFatherChristianName와 groomFatherChristianName의 상태가 일치하지 않습니다. (true → 필수, false → null)")
+    private boolean isGroomFatherChristianNameStrict() {
+        return flagMatchesObj(hasGroomFatherChristianName, groomFatherChristianName);
     }
 
-    @AssertTrue(message = "hasBrideFatherChristianName이 true면 brideFatherChristianName은 필수입니다.")
-    private boolean isBrideFatherChristianNameConsistent() {
-        return Boolean.FALSE.equals(hasBrideFatherChristianName) || brideFatherChristianName != null;
+    @AssertTrue(message = "groomMotherDeceased와 groomMotherName의 상태가 일치하지 않습니다. (true → null, false → 필수)")
+    private boolean isGroomMotherNameStrict() {
+        return flagMatchesObj(!groomMotherDeceased, groomMotherName);
     }
 
-    @AssertTrue(message = "hasBrideMotherChristianName이 true면 brideMotherChristianName은 필수입니다.")
-    private boolean isBrideMotherChristianNameConsistent() {
-        return Boolean.FALSE.equals(hasBrideMotherChristianName) || brideMotherChristianName != null;
+    @AssertTrue(message = "hasGroomMotherChristianName와 groomMotherChristianName의 상태가 일치하지 않습니다. (true → 필수, false → null)")
+    private boolean isGroomMotherChristianNameStrict() {
+        return flagMatchesObj(hasGroomMotherChristianName, groomMotherChristianName);
     }
 
-    @AssertTrue(message = "hasBrideChristianName이 true면 brideChristianName은 필수입니다.")
-    private boolean isBrideChristianNameConsistent() {
-        return Boolean.FALSE.equals(hasBrideChristianName) || brideChristianName != null;
+    @AssertTrue(message = "hasGroomChristianName와 groomChristianName의 상태가 일치하지 않습니다. (true → 필수, false → null)")
+    private boolean isGroomChristianNameStrict() {
+        return flagMatchesObj(hasGroomChristianName, groomChristianName);
+    }
+
+    @AssertTrue(message = "brideFatherDeceased와 brideFatherName의 상태가 일치하지 않습니다. (true → null, false → 필수)")
+    private boolean isBrideFatherNameStrict() {
+        return flagMatchesObj(!brideFatherDeceased, brideFatherName);
+    }
+
+    @AssertTrue(message = "hasBrideFatherChristianName와 brideFatherChristianName의 상태가 일치하지 않습니다. (true → 필수, false → null)")
+    private boolean isBrideFatherChristianNameStrict() {
+        return flagMatchesObj(hasBrideFatherChristianName, brideFatherChristianName);
+    }
+
+    @AssertTrue(message = "brideMotherDeceased와 brideMotherName의 상태가 일치하지 않습니다. (true → null, false → 필수)")
+    private boolean isBrideMotherNameStrict() {
+        return flagMatchesObj(!brideMotherDeceased, brideMotherName);
+    }
+
+    @AssertTrue(message = "hasBrideMotherChristianName와 brideMotherChristianName의 상태가 일치하지 않습니다. (true → 필수, false → null)")
+    private boolean isBrideMotherChristianNameStrict() {
+        return flagMatchesObj(hasBrideMotherChristianName, brideMotherChristianName);
+    }
+
+    @AssertTrue(message = "hasBrideChristianName와 brideChristianName의 상태가 일치하지 않습니다. (true → 필수, false → null)")
+    private boolean isBrideChristianNameStrict() {
+        return flagMatchesObj(hasBrideChristianName, brideChristianName);
     }
 }
