@@ -10,4 +10,8 @@ public interface InvitationOptionRepository extends JpaRepository<InvitationOpti
     List<InvitationOptionEntity> findAllByOptionTypeOrderById(final OptionType optionType);
 
     List<InvitationOptionEntity> findAllByInvitationIdOrderById(final Long invitationId);
+
+    List<InvitationOptionEntity> findAllByIdIn(List<Long> ids);
+
+    List<InvitationOptionEntity> findAllByInvitationIdAndIdIn(Long invitationId, List<Long> ids);
 }

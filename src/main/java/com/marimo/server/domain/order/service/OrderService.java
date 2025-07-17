@@ -16,6 +16,7 @@ import com.marimo.server.domain.order.dto.OrderResponse;
 import com.marimo.server.domain.order.dto.PaperInvitationInfo;
 import com.marimo.server.domain.order.dto.Reception;
 import com.marimo.server.domain.order.dto.Rsvp;
+import com.marimo.server.domain.order.dto.SelectedOption;
 import com.marimo.server.domain.order.entity.InvitationOrderEntity;
 import com.marimo.server.domain.order.entity.OrderAttachmentEntity;
 import com.marimo.server.domain.order.entity.OrderEntity;
@@ -24,7 +25,10 @@ import com.marimo.server.domain.order.enums.FileType;
 import com.marimo.server.domain.order.repository.InvitationOrderRepository;
 import com.marimo.server.domain.order.repository.OrderAttachmentRepository;
 import com.marimo.server.domain.order.repository.OrderRepository;
+import com.marimo.server.domain.product.entity.InvitationOptionEntity;
+import com.marimo.server.domain.product.enums.OptionType;
 import com.marimo.server.domain.product.enums.ProductType;
+import com.marimo.server.domain.product.repository.InvitationOptionRepository;
 import com.marimo.server.domain.product.repository.InvitationRepository;
 import com.marimo.server.global.exception.BusinessException;
 import com.marimo.server.global.exception.ErrorType;
@@ -32,7 +36,9 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -47,6 +53,7 @@ public class OrderService {
     private static final ZoneId SEOUL_TIME_ZONE = ZoneId.of("Asia/Seoul");
 
     private final InvitationRepository invitationRepository;
+    private final InvitationOptionRepository invitationOptionRepository;
     private final InvitationOrderRepository invitationOrderRepository;
     private final OrderAttachmentRepository orderAttachmentRepository;
     private final OrderRepository orderRepository;
@@ -115,6 +122,7 @@ public class OrderService {
         OrderEntity savedOrder = orderRepository.save(orderEntity);
 
         Long orderId = savedOrder.getId();
+        validateSelectedOptions(savedOrder.getProductId(), request.optionList());
 
         InvitationOrderEntity invitationOrderEntity = InvitationOrderEntity.builder()
                 .orderId(orderId)
@@ -323,6 +331,45 @@ public class OrderService {
         String suffix = String.format("%04d", randomNumber);
 
         return ORDER_CODE_PREFIX + datePart + "-" + suffix;
+    }
+
+    private void validateSelectedOptions(
+            Long invitationId,
+            List<SelectedOption> selectedOptions
+    ) {
+        Set<Long> optionIdSet = new HashSet<>();
+
+        for (SelectedOption so : selectedOptions) {
+            if (!optionIdSet.add(so.optionId())) {
+                throw new BusinessException(ErrorType.DUPLICATE_INVITATION_OPTION_ERROR);
+            }
+        }
+
+        List<Long> optionIds = new ArrayList<>(optionIdSet);
+        List<InvitationOptionEntity> allByIds = invitationOptionRepository.findAllByIdIn(optionIds);
+
+        if (allByIds.size() != optionIds.size()) {
+            throw new BusinessException(ErrorType.INVALID_INVITATION_OPTION_ERROR);
+        }
+
+        List<InvitationOptionEntity> matchedByInvitation =
+                invitationOptionRepository.findAllByInvitationIdAndIdIn(invitationId, optionIds);
+
+        if (matchedByInvitation.size() != optionIds.size()) {
+            throw new BusinessException(ErrorType.INVITATION_OPTION_MISMATCH_ERROR);
+        }
+
+        long quantityCount = matchedByInvitation.stream()
+                .filter(e -> e.getOptionType() == OptionType.QUANTITY)
+                .count();
+
+        if (quantityCount == 0) {
+            throw new BusinessException(ErrorType.MISSING_REQUIRED_OPTION_ERROR);
+        }
+
+        if (quantityCount > 1) {
+            throw new BusinessException(ErrorType.MULTIPLE_QUANTITY_OPTION_ERROR);
+        }
     }
 
     private FileType extractFileTypeFromUrl(String fileUrl) {

@@ -17,10 +17,16 @@ public enum ErrorType {
     TYPE_MISMATCH_ERROR(HttpStatus.BAD_REQUEST, 40005, "유효하지 않은 값이 입력되었습니다."),
     INVALID_REQUEST_BODY_ERROR(HttpStatus.BAD_REQUEST, 40006, "유효하지 않은 Request Body입니다. 요청 형식 또는 필드를 확인하세요."),
     DATA_INTEGRITY_VIOLATION_ERROR(HttpStatus.BAD_REQUEST, 40007, "데이터 무결성 제약 조건을 위반했습니다."),
-    INVALID_PRODUCT_TYPE_ERROR(HttpStatus.BAD_REQUEST, 40008, "유효하지 않은 productType입니다."),
-    INVALID_FILE_TYPE_ERROR(HttpStatus.BAD_REQUEST, 40009, "유효하지 않은 파일 확장자입니다. 지원되는 파일 형식을 확인하세요."),
 
-    INVALID_INFORMATION_ERROR(HttpStatus.BAD_REQUEST, 40010, "올바른 정보를 입력해 주세요."),
+    INVALID_PRODUCT_TYPE_ERROR(HttpStatus.BAD_REQUEST, 40008, "유효하지 않은 상품 종류입니다."),
+    INVALID_INVITATION_OPTION_ERROR(HttpStatus.BAD_REQUEST, 40009, "존재하지 않는 청첩장 옵션이 포함되어 있습니다."),
+    INVITATION_OPTION_MISMATCH_ERROR(HttpStatus.BAD_REQUEST, 40010, "선택한 옵션과 해당 청첩장의 옵션이 아닙니다."),
+    MISSING_REQUIRED_OPTION_ERROR(HttpStatus.BAD_REQUEST, 40011, "필수 옵션이 선택되지 않았습니다."),
+    MULTIPLE_QUANTITY_OPTION_ERROR(HttpStatus.BAD_REQUEST, 40012, "주문 수량 옵션은 하나만 선택할 수 있습니다."),
+    DUPLICATE_INVITATION_OPTION_ERROR(HttpStatus.BAD_REQUEST, 40013, "동일한 청첩장 옵션이 중복으로 선택되었습니다."),
+    INVALID_FILE_TYPE_ERROR(HttpStatus.BAD_REQUEST, 40014, "유효하지 않은 파일 확장자입니다. 지원되는 파일 형식을 확인하세요."),
+
+    INVALID_INFORMATION_ERROR(HttpStatus.BAD_REQUEST, 40015, "올바른 정보를 입력해 주세요."),
 
     /* 404 Not Found */
     NOT_FOUND_PATH_ERROR(HttpStatus.NOT_FOUND, 40401, "존재하지 않는 경로입니다."),
