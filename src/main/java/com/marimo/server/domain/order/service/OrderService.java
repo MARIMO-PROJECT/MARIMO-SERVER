@@ -113,6 +113,7 @@ public class OrderService {
                 .build();
 
         OrderEntity savedOrder = orderRepository.save(orderEntity);
+
         Long orderId = savedOrder.getId();
 
         InvitationOrderEntity invitationOrderEntity = InvitationOrderEntity.builder()
@@ -121,7 +122,7 @@ public class OrderService {
                 // 옵션 선택 목록
                 .optionList(request.optionList())
 
-                // 혼주
+                // 양가 혼주 정보
                 .groomFatherDeceased(invitationCommonInfo.groomFatherDeceased())
                 .hasGroomFatherChristianName(invitationCommonInfo.hasGroomFatherChristianName())
                 .groomFatherName(

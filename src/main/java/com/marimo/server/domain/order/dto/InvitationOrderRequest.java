@@ -87,7 +87,7 @@ public record InvitationOrderRequest(
     }
 
     @AssertTrue(message = "hasMobileInvitation과 모바일 청첩장 관련 필드들의 상태가 일치하지 않습니다. (true → 모두 필수, false → 모두 null)")
-    private boolean isMobileInvitationConsistent() {
+    private boolean isMobileInvitationStrict() {
         if (Boolean.TRUE.equals(hasMobileInvitation)) {
             return mobileInvitationInfo != null
                     && Boolean.TRUE.equals(hasGallery)
