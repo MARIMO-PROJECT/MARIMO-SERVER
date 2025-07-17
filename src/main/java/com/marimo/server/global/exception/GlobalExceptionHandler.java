@@ -1,6 +1,9 @@
 package com.marimo.server.global.exception;
 
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import jakarta.validation.ConstraintViolationException;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
@@ -67,6 +70,19 @@ public class GlobalExceptionHandler {
     // 잘못된 Request Body로 인해 발생하는 예외 처리
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
+        Throwable cause = e.getCause();
+
+        // 날짜/시간 형식이 잘못되었을 때
+        if (cause instanceof InvalidFormatException invalidFormat) {
+            Class<?> targetType = invalidFormat.getTargetType();
+
+            if (LocalDateTime.class.equals(targetType) || LocalTime.class.equals(targetType)) {
+                return ResponseEntity
+                        .status(ErrorType.INVALID_DATETIME_FORMAT_ERROR.getHttpStatus())
+                        .body(ErrorResponse.fail(ErrorType.INVALID_DATETIME_FORMAT_ERROR));
+            }
+        }
+
         return ResponseEntity
                 .status(ErrorType.INVALID_REQUEST_BODY_ERROR.getHttpStatus())
                 .body(ErrorResponse.fail(ErrorType.INVALID_REQUEST_BODY_ERROR));
