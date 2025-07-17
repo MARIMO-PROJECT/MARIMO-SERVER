@@ -36,6 +36,9 @@ public enum ErrorType {
     NOT_FOUND_INVITATION_ERROR(HttpStatus.NOT_FOUND, 40403, "존재하지 않는 청첩장 id입니다."),
     NOT_FOUND_PRE_VIDEO_ERROR(HttpStatus.NOT_FOUND, 40404, "존재하지 않는 식전영상 id입니다."),
 
+    /* 409 Conflict */
+    DUPLICATE_URL_SLUG_ERROR(HttpStatus.CONFLICT, 40901, "이미 사용 중인 고유 주소 식별자입니다."),
+
     /* 500 Internal Server Error */
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, 50001, "예상치 못한 서버 에러가 발생했습니다."),
     FAILED_GET_PRESIGNED_URL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, 50002, "Presigned URL 획득에 실패했습니다."),

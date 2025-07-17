@@ -5,4 +5,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface InvitationOrderRepository extends JpaRepository<InvitationOrderEntity, Long> {
 
+    boolean existsByMobileInvitationUrlSlug(String mobileInvitationUrlSlug);
 }

@@ -58,6 +58,13 @@ public class OrderService {
     private final OrderAttachmentRepository orderAttachmentRepository;
     private final OrderRepository orderRepository;
 
+    @Transactional(readOnly = true)
+    public void validateUrlSlug(final String urlSlug) {
+        if (invitationOrderRepository.existsByMobileInvitationUrlSlug(urlSlug)) {
+            throw new BusinessException(ErrorType.DUPLICATE_URL_SLUG_ERROR);
+        }
+    }
+
     @Transactional
     public OrderResponse createInvitationOrder(final InvitationOrderRequest request) {
         if (!invitationRepository.existsById(request.invitationId())) {
