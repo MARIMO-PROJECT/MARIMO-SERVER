@@ -78,8 +78,8 @@ public class GlobalExceptionHandler {
 
             if (LocalDateTime.class.equals(targetType) || LocalTime.class.equals(targetType)) {
                 return ResponseEntity
-                        .status(ErrorType.INVALID_DATETIME_FORMAT_ERROR.getHttpStatus())
-                        .body(ErrorResponse.fail(ErrorType.INVALID_DATETIME_FORMAT_ERROR));
+                        .status(ErrorType.INVALID_DATE_TIME_FORMAT_ERROR.getHttpStatus())
+                        .body(ErrorResponse.fail(ErrorType.INVALID_DATE_TIME_FORMAT_ERROR));
             }
         }
 

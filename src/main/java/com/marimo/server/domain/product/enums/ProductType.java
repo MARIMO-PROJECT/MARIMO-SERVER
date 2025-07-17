@@ -11,7 +11,7 @@ import lombok.RequiredArgsConstructor;
 public enum ProductType {
 
     INVITATION,
-    PREVIDEO,
+    PRE_VIDEO,
     ;
 
     private static final Map<String, ProductType> PRODUCT_TYPE_MAP = new HashMap<>();

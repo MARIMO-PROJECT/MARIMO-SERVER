@@ -107,13 +107,13 @@ public class InvitationOrderEntity extends BaseTimeEntity {
     @Column(name = "reception_address", length = 100)
     private String receptionAddress;
 
-    @Column(name = "reception_datetime")
-    private LocalDateTime receptionDatetime;
+    @Column(name = "reception_date_time")
+    private LocalDateTime receptionDateTime;
 
     @Column(name = "has_mobile_invitation", nullable = false)
     private Boolean hasMobileInvitation;
 
-    @Column(name = "mobile_invitation_url_slug", length = 20)
+    @Column(name = "mobile_invitation_url_slug", length = 20, unique = true)
     private String mobileInvitationUrlSlug;
 
     @Column(name = "mobile_invitation_message", length = 200)
@@ -207,7 +207,7 @@ public class InvitationOrderEntity extends BaseTimeEntity {
             List<LocalTime> busStopTimeList,
             Boolean hasReception,
             String receptionAddress,
-            LocalDateTime receptionDatetime,
+            LocalDateTime receptionDateTime,
             Boolean hasMobileInvitation,
             String mobileInvitationUrlSlug,
             String mobileInvitationMessage,
@@ -258,7 +258,7 @@ public class InvitationOrderEntity extends BaseTimeEntity {
         this.busStopTimeList = busStopTimeList;
         this.hasReception = hasReception;
         this.receptionAddress = receptionAddress;
-        this.receptionDatetime = receptionDatetime;
+        this.receptionDateTime = receptionDateTime;
         this.hasMobileInvitation = hasMobileInvitation;
         this.mobileInvitationUrlSlug = mobileInvitationUrlSlug;
         this.mobileInvitationMessage = mobileInvitationMessage;

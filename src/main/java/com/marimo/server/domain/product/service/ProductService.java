@@ -159,7 +159,7 @@ public class ProductService {
 
     @Transactional(readOnly = true)
     public PreVideoListResponse fetchPreVideos() {
-        Map<Long, String> preVideoImageMap = findImageMapByImageType(ImageType.PREVIDEO);
+        Map<Long, String> preVideoImageMap = findImageMapByImageType(ImageType.PRE_VIDEO);
 
         List<PreVideoResponse> preVideoResponses = preVideoRepository.findAllByOrderById().stream()
                 .filter(preVideo -> preVideoImageMap.containsKey(preVideo.getId()))
@@ -184,7 +184,7 @@ public class ProductService {
     public PreVideoDetailResponse fetchPreVideoDetail(final Long preVideoId) {
         String mainImageUrl =
                 productImageRepository.findFirstImageUrlByImageTypeAndProductId(
-                                ImageType.PREVIDEO.name(),
+                                ImageType.PRE_VIDEO.name(),
                                 preVideoId
                         )
                         .orElse("https://avatars.githubusercontent.com/u/198884528?s=200&v=4"); // TODO: 기본 이미지 생기면 변경

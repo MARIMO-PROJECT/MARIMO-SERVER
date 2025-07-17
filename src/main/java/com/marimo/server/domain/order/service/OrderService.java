@@ -130,13 +130,12 @@ public class OrderService {
                 .hasBrideChristianName(invitationCommonInfo.hasBrideChristianName())
                 .brideName(invitationCommonInfo.brideName())
                 .brideChristianName(invitationCommonInfo.brideChristianName())
-                .weddingDatetime(invitationCommonInfo.weddingDatetime())
+                .weddingDateTime(invitationCommonInfo.weddingDateTime())
                 .hasAdditionalRequest(hasAdditionalRequest)
                 .requestText(additionalRequest != null ? additionalRequest.requestText() : null)
                 .build();
 
         OrderEntity savedOrder = orderRepository.save(orderEntity);
-
         Long orderId = savedOrder.getId();
 
         InvitationOrderEntity invitationOrderEntity = InvitationOrderEntity.builder()
@@ -214,7 +213,7 @@ public class OrderService {
                 // 피로연
                 .hasReception(hasReception)
                 .receptionAddress(reception != null ? reception.address() : null)
-                .receptionDatetime(reception != null ? reception.datetime() : null)
+                .receptionDateTime(reception != null ? reception.dateTime() : null)
 
                 // 모바일 청첩장
                 .hasMobileInvitation(hasMobileInvitation)
