@@ -271,7 +271,7 @@ public class OrderService {
         // 종이 청첩장 메인 이미지
         String paperInvitationMainImage = paperInvitationInfo.mainImage();
 
-        addAttachmentIfValid(
+        validateAndAddAttachment(
                 orderAttachmentEntities,
                 orderId,
                 AttachmentType.PAPER_INVITATION_MAIN,
@@ -283,7 +283,7 @@ public class OrderService {
         String mobileInvitationMainImage =
                 (hasMobileInvitation && mobileInvitationInfo != null) ? mobileInvitationInfo.mainImage() : null;
 
-        addAttachmentIfValid(
+        validateAndAddAttachment(
                 orderAttachmentEntities,
                 orderId,
                 AttachmentType.MOBILE_INVITATION_MAIN,
@@ -294,7 +294,7 @@ public class OrderService {
         // 갤러리 이미지
         if (Boolean.TRUE.equals(hasGallery) && gallery != null) {
             for (String imageUrl : gallery.imageList()) {
-                addAttachmentIfValid(
+                validateAndAddAttachment(
                         orderAttachmentEntities,
                         orderId,
                         AttachmentType.GALLERY,
@@ -307,7 +307,7 @@ public class OrderService {
         // 기타 요청사항 첨부파일
         if (hasAdditionalRequest && additionalRequest != null) {
             for (String fileUrl : additionalRequest.attachmentList()) {
-                addAttachmentIfValid(
+                validateAndAddAttachment(
                         orderAttachmentEntities,
                         orderId,
                         AttachmentType.INVITATION_REQUEST,
@@ -383,11 +383,11 @@ public class OrderService {
         }
     }
 
-    private void addAttachmentIfValid(
-            final List<OrderAttachmentEntity> orderAttachmentEntities,
+    private void validateAndAddAttachment(
+            final List<OrderAttachmentEntity> target,
             final Long orderId,
-            AttachmentType attachmentType,
-            final EnumSet<FileType> allowed,
+            AttachmentType baseAttachmentType,
+            final EnumSet<FileType> allowedFileTypes,
             final String fileUrl
     ) {
         if (!hasText(fileUrl)) {
@@ -395,16 +395,16 @@ public class OrderService {
         }
 
         FileType fileType = extractFileTypeFromUrl(fileUrl);
-        requireAllowedFileType(fileType, allowed);
+        assertSupportedFileType(fileType, allowedFileTypes);
 
-        if (fileType == FileType.MP4 && attachmentType == AttachmentType.PRE_VIDEO_IMAGE) {
-            attachmentType = AttachmentType.PRE_VIDEO_VIDEO;
+        if (fileType == FileType.MP4 && baseAttachmentType == AttachmentType.PRE_VIDEO_IMAGE) {
+            baseAttachmentType = AttachmentType.PRE_VIDEO_VIDEO;
         }
 
-        orderAttachmentEntities.add(
+        target.add(
                 OrderAttachmentEntity.builder()
                         .orderId(orderId)
-                        .attachmentType(attachmentType)
+                        .attachmentType(baseAttachmentType)
                         .fileType(fileType)
                         .fileUrl(fileUrl)
                         .build()
@@ -421,8 +421,11 @@ public class OrderService {
         return FileType.fromValue(fileExtension);
     }
 
-    private void requireAllowedFileType(FileType fileType, EnumSet<FileType> allowed) {
-        if (!allowed.contains(fileType)) {
+    private void assertSupportedFileType(
+            final FileType fileType,
+            final EnumSet<FileType> allowedFileTypes
+    ) {
+        if (!allowedFileTypes.contains(fileType)) {
             throw new BusinessException(ErrorType.INVALID_FILE_TYPE_ERROR);
         }
     }
@@ -465,7 +468,7 @@ public class OrderService {
 
         // 식전영상 사진/영상
         for (String mediaUrl : request.mediaList()) {
-            addAttachmentIfValid(
+            validateAndAddAttachment(
                     orderAttachmentEntities,
                     orderId,
                     AttachmentType.PRE_VIDEO_IMAGE,
@@ -477,7 +480,7 @@ public class OrderService {
         // 기타 요청사항 첨부파일
         if (hasAdditionalRequest && additionalRequest != null) {
             for (String fileUrl : additionalRequest.attachmentList()) {
-                addAttachmentIfValid(
+                validateAndAddAttachment(
                         orderAttachmentEntities,
                         orderId,
                         AttachmentType.PRE_VIDEO_REQUEST,
