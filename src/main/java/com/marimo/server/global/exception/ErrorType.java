@@ -20,7 +20,7 @@ public enum ErrorType {
 
     INVALID_PRODUCT_TYPE_ERROR(HttpStatus.BAD_REQUEST, 40008, "유효하지 않은 상품 종류입니다."),
     INVALID_INVITATION_OPTION_ERROR(HttpStatus.BAD_REQUEST, 40009, "존재하지 않는 청첩장 옵션이 포함되어 있습니다."),
-    INVITATION_OPTION_MISMATCH_ERROR(HttpStatus.BAD_REQUEST, 40010, "선택한 옵션과 해당 청첩장의 옵션이 아닙니다."),
+    INVITATION_OPTION_MISMATCH_ERROR(HttpStatus.BAD_REQUEST, 40010, "선택한 옵션은 해당 청첩장의 옵션이 아닙니다."),
     MISSING_REQUIRED_OPTION_ERROR(HttpStatus.BAD_REQUEST, 40011, "필수 옵션이 선택되지 않았습니다."),
     MULTIPLE_QUANTITY_OPTION_ERROR(HttpStatus.BAD_REQUEST, 40012, "주문 수량 옵션은 하나만 선택할 수 있습니다."),
     DUPLICATE_INVITATION_OPTION_ERROR(HttpStatus.BAD_REQUEST, 40013, "동일한 청첩장 옵션이 중복으로 선택되었습니다."),
