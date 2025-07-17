@@ -94,7 +94,7 @@ public class ProductService {
         return InvitationListResponse.of(invitationResponses);
     }
 
-    private Map<Long, String> findImageMapByImageType(ImageType imageType) {
+    private Map<Long, String> findImageMapByImageType(final ImageType imageType) {
         return productImageRepository.findAllByImageTypeOrderById(imageType).stream()
                 .collect(Collectors.toMap(
                         ProductImageEntity::getProductId,

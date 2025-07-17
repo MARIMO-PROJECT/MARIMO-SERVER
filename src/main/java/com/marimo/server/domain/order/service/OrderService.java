@@ -59,7 +59,7 @@ public class OrderService {
     private final OrderRepository orderRepository;
 
     @Transactional
-    public OrderResponse createInvitationOrder(InvitationOrderRequest request) {
+    public OrderResponse createInvitationOrder(final InvitationOrderRequest request) {
         if (!invitationRepository.existsById(request.invitationId())) {
             throw new BusinessException(ErrorType.NOT_FOUND_INVITATION_ERROR);
         }
@@ -334,8 +334,8 @@ public class OrderService {
     }
 
     private void validateSelectedOptions(
-            Long invitationId,
-            List<SelectedOption> selectedOptions
+            final Long invitationId,
+            final List<SelectedOption> selectedOptions
     ) {
         Set<Long> optionIdSet = new HashSet<>();
 
@@ -372,7 +372,7 @@ public class OrderService {
         }
     }
 
-    private FileType extractFileTypeFromUrl(String fileUrl) {
+    private FileType extractFileTypeFromUrl(final String fileUrl) {
         if (!fileUrl.contains(".")) {
             throw new BusinessException(ErrorType.INVALID_FILE_TYPE_ERROR);
         }
