@@ -54,7 +54,7 @@ public class OrderEntity extends BaseTimeEntity {
     @Column(name = "email", length = 100, nullable = false)
     private String email;
 
-    @Column(name = "has_groom_christian_name", nullable = false)
+    @Column(name = "has_groom_christian_name")
     private Boolean hasGroomChristianName;
 
     @Column(name = "groom_name", length = 30, nullable = false)
@@ -63,7 +63,7 @@ public class OrderEntity extends BaseTimeEntity {
     @Column(name = "groom_christian_name", length = 30)
     private String groomChristianName;
 
-    @Column(name = "has_bride_christian_name", nullable = false)
+    @Column(name = "has_bride_christian_name")
     private Boolean hasBrideChristianName;
 
     @Column(name = "bride_name", length = 30, nullable = false)
