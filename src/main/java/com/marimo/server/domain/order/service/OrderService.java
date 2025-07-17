@@ -58,10 +58,7 @@ public class OrderService {
 
     private static final EnumSet<FileType> IMAGE_FILE_TYPES = EnumSet.of(FileType.JPG, FileType.JPEG);
     private static final EnumSet<FileType> PRE_VIDEO_FILE_TYPES = EnumSet.of(FileType.JPG, FileType.JPEG, FileType.MP4);
-    private static final EnumSet<FileType> INVITATION_REQUEST_FILE_TYPES =
-            EnumSet.of(FileType.PNG, FileType.MP4, FileType.MOV, FileType.PDF);
-    private static final EnumSet<FileType> PRE_VIDEO_REQUEST_FILE_TYPES =
-            EnumSet.of(FileType.PNG, FileType.MOV, FileType.PDF);
+    private static final EnumSet<FileType> ADDITIONAL_REQUEST_FILE_TYPES = EnumSet.allOf(FileType.class);
 
     private final InvitationRepository invitationRepository;
     private final InvitationOptionRepository invitationOptionRepository;
@@ -314,7 +311,7 @@ public class OrderService {
                         orderAttachmentEntities,
                         orderId,
                         AttachmentType.INVITATION_REQUEST,
-                        INVITATION_REQUEST_FILE_TYPES,
+                        ADDITIONAL_REQUEST_FILE_TYPES,
                         fileUrl
                 );
             }
@@ -484,7 +481,7 @@ public class OrderService {
                         orderAttachmentEntities,
                         orderId,
                         AttachmentType.PRE_VIDEO_REQUEST,
-                        PRE_VIDEO_REQUEST_FILE_TYPES,
+                        ADDITIONAL_REQUEST_FILE_TYPES,
                         fileUrl
                 );
             }
