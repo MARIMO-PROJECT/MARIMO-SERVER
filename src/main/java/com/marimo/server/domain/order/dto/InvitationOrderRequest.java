@@ -91,28 +91,28 @@ public record InvitationOrderRequest(
     private boolean isMobileInvitationStrict() {
         if (Boolean.TRUE.equals(hasMobileInvitation)) {
             return mobileInvitationInfo != null
-                    && Boolean.TRUE.equals(hasGallery)
-                    && Boolean.TRUE.equals(hasContactOption)
-                    && Boolean.TRUE.equals(hasGiftAccount)
-                    && Boolean.TRUE.equals(hasCalendar)
-                    && Boolean.TRUE.equals(hasMapNavigation)
-                    && Boolean.TRUE.equals(hasGuestbook)
-                    && Boolean.TRUE.equals(hasRsvp);
-        } else {
-            return mobileInvitationInfo == null
-                    && hasGallery == null
-                    && gallery == null
-                    && hasContactOption == null
-                    && contactOption == null
-                    && hasGiftAccount == null
-                    && giftAccount == null
-                    && hasCalendar == null
-                    && hasMapNavigation == null
-                    && hasGuestbook == null
-                    && guestbook == null
-                    && hasRsvp == null
-                    && rsvp == null;
+                    && hasGallery != null
+                    && hasContactOption != null
+                    && hasGiftAccount != null
+                    && hasCalendar != null
+                    && hasMapNavigation != null
+                    && hasGuestbook != null
+                    && hasRsvp != null;
         }
+
+        return mobileInvitationInfo == null
+                && hasGallery == null
+                && gallery == null
+                && hasContactOption == null
+                && contactOption == null
+                && hasGiftAccount == null
+                && giftAccount == null
+                && hasCalendar == null
+                && hasMapNavigation == null
+                && hasGuestbook == null
+                && guestbook == null
+                && hasRsvp == null
+                && rsvp == null;
     }
 
     @AssertTrue(message = "hasGallery와 gallery의 상태가 일치하지 않습니다. (true → 객체 필수, false → null)")
