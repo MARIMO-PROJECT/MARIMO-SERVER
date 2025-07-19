@@ -9,8 +9,9 @@ import lombok.RequiredArgsConstructor;
 public enum ImageType {
 
     INVITATION,
-    PRE_VIDEO,
     INVITATION_DETAIL,
+    PRE_VIDEO_THUMBNAIL,
+    PRE_VIDEO_MAIN,
     PRE_VIDEO_DETAIL,
     ;
 

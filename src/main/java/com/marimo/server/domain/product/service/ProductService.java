@@ -114,7 +114,7 @@ public class ProductService {
                 .filter(productImage -> productImage.getImageType() == ImageType.INVITATION)
                 .findFirst()
                 .map(ProductImageEntity::getImageUrl)
-                .orElse("https://avatars.githubusercontent.com/u/198884528?s=200&v=4"); // TODO: 기본 이미지 생기면 변경
+                .orElse("https://github.com/user-attachments/assets/39ea69aa-1a75-4286-b5a9-b6da5e1eebce"); // TODO: 기본 이미지 생기면 변경
 
         List<String> detailImages = productImageEntities.stream()
                 .filter(productImage -> productImage.getImageType() == ImageType.INVITATION_DETAIL)
@@ -159,7 +159,7 @@ public class ProductService {
 
     @Transactional(readOnly = true)
     public PreVideoListResponse fetchPreVideos() {
-        Map<Long, String> preVideoImageMap = findImageMapByImageType(ImageType.PRE_VIDEO);
+        Map<Long, String> preVideoImageMap = findImageMapByImageType(ImageType.PRE_VIDEO_THUMBNAIL);
 
         List<PreVideoResponse> preVideoResponses = preVideoRepository.findAllByOrderById().stream()
                 .filter(preVideo -> preVideoImageMap.containsKey(preVideo.getId()))
@@ -184,10 +184,10 @@ public class ProductService {
     public PreVideoDetailResponse fetchPreVideoDetail(final Long preVideoId) {
         String mainImageUrl =
                 productImageRepository.findFirstImageUrlByImageTypeAndProductId(
-                                ImageType.PRE_VIDEO.name(),
+                                ImageType.PRE_VIDEO_MAIN.name(),
                                 preVideoId
                         )
-                        .orElse("https://avatars.githubusercontent.com/u/198884528?s=200&v=4"); // TODO: 기본 이미지 생기면 변경
+                        .orElse("https://github.com/user-attachments/assets/e62c107d-b60a-432a-a7f1-bcd8ccf815ee"); // TODO: 기본 이미지 생기면 변경
 
         PreVideoEntity preVideoEntity = preVideoRepository.findByIdOrElseThrow(preVideoId);
 
