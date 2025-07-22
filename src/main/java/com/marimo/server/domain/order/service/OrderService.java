@@ -56,7 +56,7 @@ public class OrderService {
     private static final DateTimeFormatter ORDER_CODE_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd");
     private static final ZoneId SEOUL_TIME_ZONE = ZoneId.of("Asia/Seoul");
 
-    private static final EnumSet<FileType> IMAGE_FILE_TYPES = EnumSet.of(FileType.JPG, FileType.JPEG);
+    private static final EnumSet<FileType> INVITATION_FILE_TYPES = EnumSet.of(FileType.JPG, FileType.JPEG);
     private static final EnumSet<FileType> PRE_VIDEO_FILE_TYPES = EnumSet.of(FileType.JPG, FileType.JPEG, FileType.MP4);
     private static final EnumSet<FileType> ADDITIONAL_REQUEST_FILE_TYPES = EnumSet.allOf(FileType.class);
 
@@ -269,37 +269,37 @@ public class OrderService {
         List<OrderAttachmentEntity> orderAttachmentEntities = new ArrayList<>();
 
         // 종이 청첩장 메인 이미지
-        String paperInvitationMainImage = paperInvitationInfo.mainImage();
+        String paperInvitationMainImageUrl = paperInvitationInfo.mainImage();
 
         validateAndAddAttachment(
                 orderAttachmentEntities,
                 orderId,
                 AttachmentType.PAPER_INVITATION_MAIN,
-                IMAGE_FILE_TYPES,
-                paperInvitationMainImage
+                INVITATION_FILE_TYPES,
+                paperInvitationMainImageUrl
         );
 
         // 모바일 청첩장 메인 이미지
-        String mobileInvitationMainImage =
+        String mobileInvitationMainImageUrl =
                 (hasMobileInvitation && mobileInvitationInfo != null) ? mobileInvitationInfo.mainImage() : null;
 
         validateAndAddAttachment(
                 orderAttachmentEntities,
                 orderId,
                 AttachmentType.MOBILE_INVITATION_MAIN,
-                IMAGE_FILE_TYPES,
-                mobileInvitationMainImage
+                INVITATION_FILE_TYPES,
+                mobileInvitationMainImageUrl
         );
 
         // 갤러리 이미지
         if (Boolean.TRUE.equals(hasGallery) && gallery != null) {
-            for (String imageUrl : gallery.imageList()) {
+            for (String galleryImageUrl : gallery.imageList()) {
                 validateAndAddAttachment(
                         orderAttachmentEntities,
                         orderId,
                         AttachmentType.GALLERY,
-                        IMAGE_FILE_TYPES,
-                        imageUrl
+                        INVITATION_FILE_TYPES,
+                        galleryImageUrl
                 );
             }
         }
@@ -386,7 +386,7 @@ public class OrderService {
     private void validateAndAddAttachment(
             final List<OrderAttachmentEntity> target,
             final Long orderId,
-            AttachmentType baseAttachmentType,
+            final AttachmentType attachmentType,
             final EnumSet<FileType> allowedFileTypes,
             final String fileUrl
     ) {
@@ -397,14 +397,10 @@ public class OrderService {
         FileType fileType = extractFileTypeFromUrl(fileUrl);
         assertSupportedFileType(fileType, allowedFileTypes);
 
-        if (fileType == FileType.MP4 && baseAttachmentType == AttachmentType.PRE_VIDEO_IMAGE) {
-            baseAttachmentType = AttachmentType.PRE_VIDEO_VIDEO;
-        }
-
         target.add(
                 OrderAttachmentEntity.builder()
                         .orderId(orderId)
-                        .attachmentType(baseAttachmentType)
+                        .attachmentType(attachmentType)
                         .fileType(fileType)
                         .fileUrl(fileUrl)
                         .build()
@@ -471,7 +467,7 @@ public class OrderService {
             validateAndAddAttachment(
                     orderAttachmentEntities,
                     orderId,
-                    AttachmentType.PRE_VIDEO_IMAGE,
+                    AttachmentType.PRE_VIDEO,
                     PRE_VIDEO_FILE_TYPES,
                     mediaUrl
             );
