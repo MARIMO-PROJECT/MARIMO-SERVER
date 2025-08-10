@@ -1,4 +1,4 @@
-package com.marimo.server.domain.order.dto;
+package com.marimo.server.domain.order.dto.request;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
