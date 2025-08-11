@@ -71,7 +71,7 @@ public record InvitationOrderRequest(
 
     private static boolean flagMatchesObj(Boolean flag, Object obj) {
         if (flag == null) {
-            return false;
+            return obj == null;
         }
 
         return flag == (obj != null);
