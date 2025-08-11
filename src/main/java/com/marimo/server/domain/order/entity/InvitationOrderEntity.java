@@ -1,7 +1,7 @@
 package com.marimo.server.domain.order.entity;
 
-import com.marimo.server.domain.order.dto.Account;
-import com.marimo.server.domain.order.dto.SelectedOption;
+import com.marimo.server.domain.order.dto.request.Account;
+import com.marimo.server.domain.order.dto.request.SelectedOption;
 import com.marimo.server.global.entity.BaseTimeEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

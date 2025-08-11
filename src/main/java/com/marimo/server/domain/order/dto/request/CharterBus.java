@@ -1,4 +1,4 @@
-package com.marimo.server.domain.order.dto;
+package com.marimo.server.domain.order.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.NotBlank;

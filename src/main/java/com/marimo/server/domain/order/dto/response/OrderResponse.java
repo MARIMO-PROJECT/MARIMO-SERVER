@@ -1,4 +1,4 @@
-package com.marimo.server.domain.order.dto;
+package com.marimo.server.domain.order.dto.response;
 
 public record OrderResponse(
         String orderCode

@@ -2,23 +2,26 @@ package com.marimo.server.domain.order.service;
 
 import static org.springframework.util.StringUtils.hasText;
 
-import com.marimo.server.domain.order.dto.AdditionalRequestInfo;
-import com.marimo.server.domain.order.dto.CharterBus;
-import com.marimo.server.domain.order.dto.ContactOption;
-import com.marimo.server.domain.order.dto.CustomerInfo;
-import com.marimo.server.domain.order.dto.Gallery;
-import com.marimo.server.domain.order.dto.GiftAccount;
-import com.marimo.server.domain.order.dto.Guestbook;
-import com.marimo.server.domain.order.dto.InvitationCommonInfo;
-import com.marimo.server.domain.order.dto.InvitationOrderRequest;
-import com.marimo.server.domain.order.dto.MobileInvitationInfo;
-import com.marimo.server.domain.order.dto.OrderResponse;
-import com.marimo.server.domain.order.dto.PaperInvitationInfo;
-import com.marimo.server.domain.order.dto.PreVideoCommonInfo;
-import com.marimo.server.domain.order.dto.PreVideoOrderRequest;
-import com.marimo.server.domain.order.dto.Reception;
-import com.marimo.server.domain.order.dto.Rsvp;
-import com.marimo.server.domain.order.dto.SelectedOption;
+import com.marimo.server.domain.order.dto.request.AdditionalRequestInfo;
+import com.marimo.server.domain.order.dto.request.CharterBus;
+import com.marimo.server.domain.order.dto.request.ContactOption;
+import com.marimo.server.domain.order.dto.request.CustomerInfo;
+import com.marimo.server.domain.order.dto.request.Gallery;
+import com.marimo.server.domain.order.dto.request.GiftAccount;
+import com.marimo.server.domain.order.dto.request.Guestbook;
+import com.marimo.server.domain.order.dto.request.InvitationCommonInfo;
+import com.marimo.server.domain.order.dto.request.InvitationOrderRequest;
+import com.marimo.server.domain.order.dto.request.MobileInvitationInfo;
+import com.marimo.server.domain.order.dto.request.PaperInvitationInfo;
+import com.marimo.server.domain.order.dto.request.PreVideoCommonInfo;
+import com.marimo.server.domain.order.dto.request.PreVideoOrderRequest;
+import com.marimo.server.domain.order.dto.request.Reception;
+import com.marimo.server.domain.order.dto.request.Rsvp;
+import com.marimo.server.domain.order.dto.request.SelectedOption;
+import com.marimo.server.domain.order.dto.request.UploadFileInfo;
+import com.marimo.server.domain.order.dto.response.OrderResponse;
+import com.marimo.server.domain.order.dto.response.PresignedUrl;
+import com.marimo.server.domain.order.dto.response.PresignedUrlListResponse;
 import com.marimo.server.domain.order.entity.InvitationOrderEntity;
 import com.marimo.server.domain.order.entity.OrderAttachmentEntity;
 import com.marimo.server.domain.order.entity.OrderEntity;
@@ -33,20 +36,25 @@ import com.marimo.server.domain.product.enums.ProductType;
 import com.marimo.server.domain.product.repository.InvitationOptionRepository;
 import com.marimo.server.domain.product.repository.InvitationRepository;
 import com.marimo.server.domain.product.repository.PreVideoRepository;
+import com.marimo.server.global.adapter.S3Adapter;
 import com.marimo.server.global.exception.BusinessException;
 import com.marimo.server.global.exception.ErrorType;
+import java.text.Normalizer;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 @Service
 @RequiredArgsConstructor
@@ -55,10 +63,18 @@ public class OrderService {
     private static final String ORDER_CODE_PREFIX = "MRM";
     private static final DateTimeFormatter ORDER_CODE_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd");
     private static final ZoneId SEOUL_TIME_ZONE = ZoneId.of("Asia/Seoul");
+    private static final int ORDER_CODE_RANDOM_BOUND = 10_000; // 0000~9999
+    private static final String ORDER_CODE_SUFFIX_FORMAT = "%04d";
 
-    private static final EnumSet<FileType> IMAGE_FILE_TYPES = EnumSet.of(FileType.JPG, FileType.JPEG);
-    private static final EnumSet<FileType> PRE_VIDEO_FILE_TYPES = EnumSet.of(FileType.JPG, FileType.JPEG, FileType.MP4);
-    private static final EnumSet<FileType> ADDITIONAL_REQUEST_FILE_TYPES = EnumSet.allOf(FileType.class);
+    private static final String S3_KEY_PREFIX_ORDERS_TEMP = "orders/temp";
+    private static final String DEFAULT_BASE_NAME = "file";
+    private static final int BASE_NAME_MAX_LENGTH = 100;
+
+    private static final Pattern REPEATED_UNDERSCORES = Pattern.compile("_+");
+    private static final Pattern TRIM_EDGE_UNDERSCORES = Pattern.compile("^_+|_+$");
+    private static final Pattern DISALLOWED_BASE_NAME_CHARS_PATTERN = Pattern.compile("[^0-9A-Za-z가-힣ㄱ-ㅎㅏ-ㅣ._-]");
+
+    private final S3Adapter s3Adapter;
 
     private final InvitationRepository invitationRepository;
     private final InvitationOptionRepository invitationOptionRepository;
@@ -269,37 +285,34 @@ public class OrderService {
         List<OrderAttachmentEntity> orderAttachmentEntities = new ArrayList<>();
 
         // 종이 청첩장 메인 이미지
-        String paperInvitationMainImage = paperInvitationInfo.mainImage();
+        String paperInvitationMainImageUrl = paperInvitationInfo.mainImage();
 
         validateAndAddAttachment(
                 orderAttachmentEntities,
                 orderId,
                 AttachmentType.PAPER_INVITATION_MAIN,
-                IMAGE_FILE_TYPES,
-                paperInvitationMainImage
+                paperInvitationMainImageUrl
         );
 
         // 모바일 청첩장 메인 이미지
-        String mobileInvitationMainImage =
+        String mobileInvitationMainImageUrl =
                 (hasMobileInvitation && mobileInvitationInfo != null) ? mobileInvitationInfo.mainImage() : null;
 
         validateAndAddAttachment(
                 orderAttachmentEntities,
                 orderId,
                 AttachmentType.MOBILE_INVITATION_MAIN,
-                IMAGE_FILE_TYPES,
-                mobileInvitationMainImage
+                mobileInvitationMainImageUrl
         );
 
         // 갤러리 이미지
         if (Boolean.TRUE.equals(hasGallery) && gallery != null) {
-            for (String imageUrl : gallery.imageList()) {
+            for (String galleryImageUrl : gallery.imageList()) {
                 validateAndAddAttachment(
                         orderAttachmentEntities,
                         orderId,
                         AttachmentType.GALLERY,
-                        IMAGE_FILE_TYPES,
-                        imageUrl
+                        galleryImageUrl
                 );
             }
         }
@@ -311,7 +324,6 @@ public class OrderService {
                         orderAttachmentEntities,
                         orderId,
                         AttachmentType.INVITATION_REQUEST,
-                        ADDITIONAL_REQUEST_FILE_TYPES,
                         fileUrl
                 );
             }
@@ -338,8 +350,8 @@ public class OrderService {
         LocalDate now = LocalDate.now(SEOUL_TIME_ZONE);
         String datePart = now.format(ORDER_CODE_DATE_FORMATTER);
 
-        int randomNumber = ThreadLocalRandom.current().nextInt(10_000);
-        String suffix = String.format("%04d", randomNumber);
+        int randomNumber = ThreadLocalRandom.current().nextInt(ORDER_CODE_RANDOM_BOUND);
+        String suffix = String.format(ORDER_CODE_SUFFIX_FORMAT, randomNumber);
 
         return ORDER_CODE_PREFIX + datePart + "-" + suffix;
     }
@@ -386,48 +398,37 @@ public class OrderService {
     private void validateAndAddAttachment(
             final List<OrderAttachmentEntity> target,
             final Long orderId,
-            AttachmentType baseAttachmentType,
-            final EnumSet<FileType> allowedFileTypes,
+            final AttachmentType attachmentType,
             final String fileUrl
     ) {
         if (!hasText(fileUrl)) {
             return;
         }
 
-        FileType fileType = extractFileTypeFromUrl(fileUrl);
-        assertSupportedFileType(fileType, allowedFileTypes);
+        FileType fileType = resolveFileTypeFromPath(fileUrl);
 
-        if (fileType == FileType.MP4 && baseAttachmentType == AttachmentType.PRE_VIDEO_IMAGE) {
-            baseAttachmentType = AttachmentType.PRE_VIDEO_VIDEO;
+        if (!attachmentType.isAllowed(fileType)) {
+            throw new BusinessException(ErrorType.INVALID_FILE_TYPE_ERROR);
         }
 
         target.add(
                 OrderAttachmentEntity.builder()
                         .orderId(orderId)
-                        .attachmentType(baseAttachmentType)
+                        .attachmentType(attachmentType)
                         .fileType(fileType)
                         .fileUrl(fileUrl)
                         .build()
         );
     }
 
-    private FileType extractFileTypeFromUrl(final String fileUrl) {
-        if (!fileUrl.contains(".")) {
+    private FileType resolveFileTypeFromPath(final String path) {
+        if (!StringUtils.hasText(path) || !path.contains(".")) {
             throw new BusinessException(ErrorType.INVALID_FILE_TYPE_ERROR);
         }
 
-        String fileExtension = fileUrl.substring(fileUrl.lastIndexOf('.') + 1);
+        String ext = path.substring(path.lastIndexOf(".") + 1);
 
-        return FileType.fromValue(fileExtension);
-    }
-
-    private void assertSupportedFileType(
-            final FileType fileType,
-            final EnumSet<FileType> allowedFileTypes
-    ) {
-        if (!allowedFileTypes.contains(fileType)) {
-            throw new BusinessException(ErrorType.INVALID_FILE_TYPE_ERROR);
-        }
+        return FileType.fromValue(ext);
     }
 
     @Transactional
@@ -471,8 +472,7 @@ public class OrderService {
             validateAndAddAttachment(
                     orderAttachmentEntities,
                     orderId,
-                    AttachmentType.PRE_VIDEO_IMAGE,
-                    PRE_VIDEO_FILE_TYPES,
+                    AttachmentType.PRE_VIDEO,
                     mediaUrl
             );
         }
@@ -484,7 +484,6 @@ public class OrderService {
                         orderAttachmentEntities,
                         orderId,
                         AttachmentType.PRE_VIDEO_REQUEST,
-                        ADDITIONAL_REQUEST_FILE_TYPES,
                         fileUrl
                 );
             }
@@ -495,5 +494,94 @@ public class OrderService {
         }
 
         return OrderResponse.of(savedOrder.getCode());
+    }
+
+    public PresignedUrlListResponse issuePresignedUrls(
+            final AttachmentType attachmentType,
+            final List<UploadFileInfo> uploadFileInfoList
+    ) {
+        if (uploadFileInfoList.size() > attachmentType.getMaxCount()) {
+            throw new BusinessException(ErrorType.FILE_COUNT_LIMIT_EXCEEDED_ERROR);
+        }
+
+        List<PresignedUrl> results = new ArrayList<>(uploadFileInfoList.size());
+
+        for (UploadFileInfo uploadFileInfo : uploadFileInfoList) {
+            FileType fileType = resolveFileTypeFromPath(uploadFileInfo.originalFileName());
+
+            if (!attachmentType.isAllowed(fileType)) {
+                throw new BusinessException(ErrorType.INVALID_FILE_TYPE_ERROR);
+            }
+
+            if (uploadFileInfo.fileSizeBytes() > fileType.maxSizeBytes()) {
+                throw new BusinessException(ErrorType.FILE_SIZE_LIMIT_EXCEEDED_ERROR);
+            }
+
+            String extLower = fileType.name().toLowerCase(Locale.ROOT);
+            String baseName = sanitizeBaseName(extractBaseName(uploadFileInfo.originalFileName()));
+            String s3Key = String.join("/",
+                    S3_KEY_PREFIX_ORDERS_TEMP,
+                    attachmentType.name().toLowerCase(Locale.ROOT),
+                    baseName + "_" + UUID.randomUUID() + "." + extLower
+            );
+
+            String presignedUrl;
+
+            try {
+                presignedUrl = s3Adapter.issuePresignedUrl(s3Key, fileType);
+            } catch (Exception e) {
+                throw new BusinessException(ErrorType.FAILED_GET_PRESIGNED_URL_ERROR);
+            }
+
+            results.add(PresignedUrl.of(s3Key, presignedUrl));
+        }
+
+        return PresignedUrlListResponse.of(results);
+    }
+
+    private String sanitizeBaseName(final String rawBaseName) {
+        if (!StringUtils.hasText(rawBaseName)) {
+            return DEFAULT_BASE_NAME;
+        }
+
+        // 유니코드 정규화 (한글 조합형 → NFC)
+        String nfc = Normalizer.normalize(rawBaseName, Normalizer.Form.NFC);
+
+        // 비허용 문자 '_'로 치환
+        String sanitized = DISALLOWED_BASE_NAME_CHARS_PATTERN.matcher(nfc).replaceAll("_");
+
+        // 연속된 '_' 축약
+        sanitized = REPEATED_UNDERSCORES.matcher(sanitized).replaceAll("_");
+
+        // 앞뒤 '_' 제거
+        sanitized = TRIM_EDGE_UNDERSCORES.matcher(sanitized).replaceAll("");
+
+        // 비어버린 경우 대비
+        if (sanitized.isBlank()) {
+            sanitized = DEFAULT_BASE_NAME;
+        }
+
+        // 길이 제한
+        if (sanitized.length() > BASE_NAME_MAX_LENGTH) {
+            sanitized = sanitized.substring(0, BASE_NAME_MAX_LENGTH);
+        }
+
+        return sanitized;
+    }
+
+    private String extractBaseName(final String fileName) {
+        if (!StringUtils.hasText(fileName) || !fileName.contains(".")) {
+            throw new BusinessException(ErrorType.INVALID_FILE_TYPE_ERROR);
+        }
+
+        int idx = fileName.lastIndexOf(".");
+
+        // idx <= 0 : 확장자 없음(-1) 또는 선행 점파일(.env)
+        // idx == len-1 : 'a.'처럼 확장자 비어 있음
+        if (idx <= 0 || idx == fileName.length() - 1) {
+            throw new BusinessException(ErrorType.INVALID_FILE_TYPE_ERROR);
+        }
+
+        return fileName.substring(0, idx);
     }
 }
