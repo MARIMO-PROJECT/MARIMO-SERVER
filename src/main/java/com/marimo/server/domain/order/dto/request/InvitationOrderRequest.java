@@ -1,4 +1,4 @@
-package com.marimo.server.domain.order.dto;
+package com.marimo.server.domain.order.dto.request;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.AssertTrue;
@@ -13,7 +13,7 @@ public record InvitationOrderRequest(
         Long invitationId,
 
         @NotEmpty(message = "optionList에는 최소 1개 이상의 항목이 필요합니다.")
-        List<@NotNull(message = "SelectedOption은 null이 될 수 없습니다.") @Valid SelectedOption> optionList,
+        List<@NotNull(message = "SelectedOption은 필수입니다.") @Valid SelectedOption> optionList,
 
         @NotNull(message = "customerInfo는 필수입니다.")
         @Valid CustomerInfo customerInfo,

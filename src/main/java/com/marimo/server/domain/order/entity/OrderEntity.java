@@ -39,7 +39,7 @@ public class OrderEntity extends BaseTimeEntity {
     @Column(name = "customer_name", length = 30, nullable = false)
     private String customerName;
 
-    @Column(name = "zone_code", length = 5, nullable = false)
+    @Column(name = "zone_code", length = 10, nullable = false)
     private String zoneCode;
 
     @Column(name = "address", length = 100, nullable = false)

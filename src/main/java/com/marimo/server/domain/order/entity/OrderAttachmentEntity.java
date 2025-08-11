@@ -33,7 +33,7 @@ public class OrderAttachmentEntity {
     private AttachmentType attachmentType;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "file_type", nullable = false)
+    @Column(name = "file_type", length = 10, nullable = false)
     private FileType fileType;
 
     @Column(name = "file_url", columnDefinition = "text", nullable = false)

@@ -9,11 +9,11 @@ import java.util.List;
 public record GiftAccount(
         @NotEmpty(message = "groomGiftAccountList에는 최소 1개 이상의 항목이 필요합니다.")
         @Size(max = 3, message = "계좌는 최대 3개까지 입력할 수 있습니다.")
-        List<@NotNull(message = "Account는 null이 될 수 없습니다.") @Valid Account> groomGiftAccountList,
+        List<@NotNull(message = "Account는 필수입니다.") @Valid Account> groomGiftAccountList,
 
         @NotEmpty(message = "brideGiftAccountList에는 최소 1개 이상의 항목이 필요합니다.")
         @Size(max = 3, message = "계좌는 최대 3개까지 입력할 수 있습니다.")
-        List<@NotNull(message = "Account는 null이 될 수 없습니다.") @Valid Account> brideGiftAccountList
+        List<@NotNull(message = "Account는 필수입니다.") @Valid Account> brideGiftAccountList
 ) {
 
 }
