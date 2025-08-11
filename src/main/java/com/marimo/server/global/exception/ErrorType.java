@@ -30,6 +30,8 @@ public enum ErrorType {
 
     INVALID_INFORMATION_ERROR(HttpStatus.BAD_REQUEST, 40016, "올바른 정보를 입력해 주세요."),
 
+    INVALID_ATTACHMENT_TYPE_ERROR(HttpStatus.BAD_REQUEST, 40017, "유효하지 않은 첨부파일 종류입니다."),
+
     /* 404 Not Found */
     NOT_FOUND_PATH_ERROR(HttpStatus.NOT_FOUND, 40401, "존재하지 않는 경로입니다."),
     NOT_FOUND_IMAGE_PATH_ERROR(HttpStatus.NOT_FOUND, 40402, "존재하지 않는 이미지 경로입니다."),
