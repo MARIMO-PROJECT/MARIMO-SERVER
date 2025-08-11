@@ -1,8 +1,11 @@
 package com.marimo.server.domain.order.controller;
 
-import com.marimo.server.domain.order.dto.InvitationOrderRequest;
-import com.marimo.server.domain.order.dto.OrderResponse;
-import com.marimo.server.domain.order.dto.PreVideoOrderRequest;
+import com.marimo.server.domain.order.dto.request.InvitationOrderRequest;
+import com.marimo.server.domain.order.dto.request.PreVideoOrderRequest;
+import com.marimo.server.domain.order.dto.request.PresignedUrlRequest;
+import com.marimo.server.domain.order.dto.response.OrderResponse;
+import com.marimo.server.domain.order.dto.response.PresignedUrlListResponse;
+import com.marimo.server.domain.order.enums.AttachmentType;
 import com.marimo.server.domain.order.service.OrderService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -60,6 +63,21 @@ public class OrderController {
     ) {
         return ResponseEntity.ok(
                 orderService.createPreVideoOrder(request)
+        );
+    }
+
+    @PostMapping(
+            path = "/files/presigned-url",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    public ResponseEntity<PresignedUrlListResponse> issuePresignedUrls(
+            @Valid @RequestBody final PresignedUrlRequest request
+    ) {
+        AttachmentType attachmentType = AttachmentType.fromValue(request.attachmentType());
+
+        return ResponseEntity.ok(
+                orderService.issuePresignedUrls(attachmentType, request.uploadFileInfoList())
         );
     }
 }
