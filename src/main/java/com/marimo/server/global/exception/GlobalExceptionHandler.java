@@ -115,7 +115,7 @@ public class GlobalExceptionHandler {
     // 기타 에러 발생 시 예외 처리
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneralException(Exception e) {
-        log.error("알 수 없는 예외 발생: {}", e.getClass().getName());
+        log.error("알 수 없는 예외 발생: {}", e.getClass().getName(), e);
         log.error("에러 메시지: {}", e.getMessage());
 
         return ResponseEntity
