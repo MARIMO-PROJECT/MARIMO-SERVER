@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- 로그 출력 색상 설정 -->
+    <conversionRule conversionWord="clr" class="org.springframework.boot.logging.logback.ColorConverter"/>
+
+    <!-- 로그 출력 패턴 설정 -->
+    <property name="CONSOLE_LOG_PATTERN"
+              value="%clr(%d{yyyy-MM-dd HH:mm:ss.SSS, Asia/Seoul}){faint} %clr(%5level){} %clr([%15.15thread] [%X{traceId:-NoTraceID}]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %msg%n"/>
+    <property name="FILE_LOG_PATTERN"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS, Asia/Seoul} %5level [%15.15thread] [%X{traceId:-NoTraceID}] %-40.40logger{39} - %msg%n"/>
+
+    <!-- 로그 파일 경로 설정 -->
+    <springProperty name="LOG_HOME_PATH" source="logging.location"/>
+    <property name="LOG_PATH" value="${LOG_HOME_PATH}/marimo-logs"/>
+    <property name="LOG_FILE" value="${LOG_PATH}/marimo.log"/>
+
+    <!-- 콘솔 로그 출력 설정 -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${CONSOLE_LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 파일 로그 출력 설정 -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_FILE}</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/marimo-%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <maxFileSize>10MB</maxFileSize>
+            <maxHistory>90</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${FILE_LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Discord & Slack 웹훅 URL 설정 -->
+    <springProperty name="PROD_DISCORD_WEBHOOK_URL" source="discord.webhook-url.prod-error"/>
+    <springProperty name="LOCAL_DISCORD_WEBHOOK_URL" source="discord.webhook-url.local-error"/>
+    <springProperty name="PROD_SLACK_WEBHOOK_URL" source="slack.webhook-url.prod-error"/>
+    <springProperty name="LOCAL_SLACK_WEBHOOK_URL" source="slack.webhook-url.local-error"/>
+
+    <!-- active profile에 따라 Webhook URL 설정 -->
+    <springProfile name="prod">
+        <property name="DISCORD_ERROR_WEBHOOK_URL" value="${PROD_DISCORD_WEBHOOK_URL}"/>
+        <property name="SLACK_ERROR_WEBHOOK_URL" value="${PROD_SLACK_WEBHOOK_URL}"/>
+    </springProfile>
+    <springProfile name="local">
+        <property name="DISCORD_ERROR_WEBHOOK_URL" value="${LOCAL_DISCORD_WEBHOOK_URL}"/>
+        <property name="SLACK_ERROR_WEBHOOK_URL" value="${LOCAL_SLACK_WEBHOOK_URL}"/>
+    </springProfile>
+
+    <!-- Circuit Breaker 기반 Fallback 알림 설정 -->
+    <appender name="FALLBACK_NOTIFICATION" class="com.marimo.server.global.logging.FallbackNotificationAppender">
+        <username>this-is-marimo-bot</username>
+        <avatarUrl>https://avatars.githubusercontent.com/u/81475587?v=4</avatarUrl>
+        <slackWebhookUrl>${SLACK_ERROR_WEBHOOK_URL}</slackWebhookUrl>
+        <discordWebhookUrl>${DISCORD_ERROR_WEBHOOK_URL}</discordWebhookUrl>
+        <!-- Circuit Breaker 설정 -->
+        <failureThreshold>5</failureThreshold>        <!-- 5회 실패 시 OPEN -->
+        <successThreshold>3</successThreshold>        <!-- 3회 성공 시 CLOSED -->
+        <timeoutDuration>60000</timeoutDuration>      <!-- 1분 후 HALF_OPEN -->
+    </appender>
+
+    <!-- 주문 성공 알림 Appender -->
+    <appender name="ORDER_NOTIFICATION" class="com.marimo.server.global.logging.OrderNotificationAppender">
+        <username>this-is-marimo-bot</username>
+        <avatarUrl>https://avatars.githubusercontent.com/u/81475587?v=4</avatarUrl>
+        <slackWebhookUrl>${SLACK_ERROR_WEBHOOK_URL}</slackWebhookUrl>
+        <discordWebhookUrl>${DISCORD_ERROR_WEBHOOK_URL}</discordWebhookUrl>
+        <!-- Circuit Breaker 설정 (에러 알림과 동일) -->
+        <failureThreshold>5</failureThreshold>        <!-- 5회 실패 시 OPEN -->
+        <successThreshold>3</successThreshold>        <!-- 3회 성공 시 CLOSED -->
+        <timeoutDuration>60000</timeoutDuration>      <!-- 1분 후 HALF_OPEN -->
+    </appender>
+
+    <!-- 주문 알림 비동기 처리 설정 -->
+    <appender name="ASYNC_ORDER" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="ORDER_NOTIFICATION"/>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+        <!-- 큐 크기 설정 (기본값: 256) -->
+        <queueSize>512</queueSize>
+        <!-- 큐가 가득 찰 때 로그를 버리지 않고 대기 -->
+        <neverBlock>false</neverBlock>
+    </appender>
+
+    <!-- Fallback 알림 비동기 처리 설정 -->
+    <appender name="ASYNC_FALLBACK" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="FALLBACK_NOTIFICATION"/>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>ERROR</level>
+        </filter>
+        <!-- 큐 크기 설정 (기본값: 256) -->
+        <queueSize>512</queueSize>
+        <!-- 큐가 가득 찰 때 로그를 버리지 않고 대기 -->
+        <neverBlock>false</neverBlock>
+    </appender>
+
+    <!-- 운영 환경 설정 -->
+    <springProfile name="prod">
+        <!-- 주문 알림 전용 logger -->
+        <logger name="ORDER_NOTIFICATION" level="INFO" additivity="false">
+            <appender-ref ref="ASYNC_ORDER"/>
+        </logger>
+
+        <!-- marimo 패키지 logger 레벨 설정 -->
+        <logger name="com.marimo.server" level="INFO" additivity="false">
+            <appender-ref ref="FILE"/>
+            <appender-ref ref="ASYNC_FALLBACK"/>
+        </logger>
+
+        <!-- root logger 레벨 설정 -->
+        <root level="INFO">
+            <appender-ref ref="FILE"/>
+            <appender-ref ref="ASYNC_FALLBACK"/>
+        </root>
+    </springProfile>
+
+    <!-- 로컬 환경 설정 -->
+    <springProfile name="local">
+        <!-- 주문 알림 전용 logger -->
+        <logger name="ORDER_NOTIFICATION" level="INFO" additivity="false">
+            <appender-ref ref="ASYNC_ORDER"/>
+        </logger>
+
+        <!-- marimo 패키지 logger 레벨 설정 -->
+        <logger name="com.marimo.server" level="DEBUG" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="ASYNC_FALLBACK"/>
+        </logger>
+
+        <!-- root logger 레벨 설정 -->
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="ASYNC_FALLBACK"/>
+        </root>
+    </springProfile>
+</configuration>
