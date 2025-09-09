@@ -60,16 +60,20 @@
         <property name="ORDER_NOTI_DISCORD_WEBHOOK_URL" value="${DEV_ORDER_NOTI_DISCORD_WEBHOOK_URL}"/>
     </springProfile>
 
+    <!-- 서킷 브레이커 설정 -->
+    <springProperty name="CIRCUIT_BREAKER_FAILURE_THRESHOLD" source="circuit-breaker.failure-threshold"/>
+    <springProperty name="CIRCUIT_BREAKER_SUCCESS_THRESHOLD" source="circuit-breaker.success-threshold"/>
+    <springProperty name="CIRCUIT_BREAKER_TIMEOUT_DURATION" source="circuit-breaker.timeout-duration"/>
+
     <!-- 에러 알림 Appender 설정 -->
     <appender name="FALLBACK_NOTIFICATION" class="com.marimo.server.global.logging.FallbackNotificationAppender">
         <username>this-is-marimo-bot</username>
         <avatarUrl>https://avatars.githubusercontent.com/u/81475587?v=4</avatarUrl>
         <slackWebhookUrl>${SERVER_ERROR_SLACK_WEBHOOK_URL}</slackWebhookUrl>
         <discordWebhookUrl>${SERVER_ERROR_DISCORD_WEBHOOK_URL}</discordWebhookUrl>
-        <!-- 서킷 브레이커 설정 -->
-        <failureThreshold>5</failureThreshold>      <!-- 5회 실패 시 OPEN -->
-        <successThreshold>3</successThreshold>      <!-- 3회 성공 시 CLOSED -->
-        <timeoutDuration>60000</timeoutDuration>    <!-- 1분 후 HALF_OPEN -->
+        <failureThreshold>${CIRCUIT_BREAKER_FAILURE_THRESHOLD}</failureThreshold>
+        <successThreshold>${CIRCUIT_BREAKER_SUCCESS_THRESHOLD}</successThreshold>
+        <timeoutDuration>${CIRCUIT_BREAKER_TIMEOUT_DURATION}</timeoutDuration>
     </appender>
 
     <!-- 주문 알림 Appender 설정 -->
@@ -78,10 +82,9 @@
         <avatarUrl>https://avatars.githubusercontent.com/u/81475587?v=4</avatarUrl>
         <slackWebhookUrl>${ORDER_NOTI_SLACK_WEBHOOK_URL}</slackWebhookUrl>
         <discordWebhookUrl>${ORDER_NOTI_DISCORD_WEBHOOK_URL}</discordWebhookUrl>
-        <!-- 서킷 브레이커 설정 -->
-        <failureThreshold>5</failureThreshold>      <!-- 5회 실패 시 OPEN -->
-        <successThreshold>3</successThreshold>      <!-- 3회 성공 시 CLOSED -->
-        <timeoutDuration>60000</timeoutDuration>    <!-- 1분 후 HALF_OPEN -->
+        <failureThreshold>${CIRCUIT_BREAKER_FAILURE_THRESHOLD}</failureThreshold>
+        <successThreshold>${CIRCUIT_BREAKER_SUCCESS_THRESHOLD}</successThreshold>
+        <timeoutDuration>${CIRCUIT_BREAKER_TIMEOUT_DURATION}</timeoutDuration>
     </appender>
 
     <!-- 에러 알림 비동기 처리 설정 -->
@@ -110,16 +113,6 @@
 
     <!-- 운영 환경 설정 -->
     <springProfile name="prod">
-        <!-- 서버 에러 알림 전용 logger -->
-        <logger name="ERROR_NOTIFICATION" level="ERROR" additivity="false">
-            <appender-ref ref="ASYNC_FALLBACK"/>
-        </logger>
-
-        <!-- 주문 알림 전용 logger -->
-        <logger name="ORDER_NOTIFICATION" level="INFO" additivity="false">
-            <appender-ref ref="ASYNC_ORDER"/>
-        </logger>
-
         <!-- marimo 애플리케이션 logger -->
         <logger name="com.marimo.server" level="INFO" additivity="false">
             <appender-ref ref="CONSOLE"/>
@@ -135,16 +128,6 @@
 
     <!-- 개발 환경 설정 -->
     <springProfile name="dev">
-        <!-- 서버 에러 알림 전용 logger -->
-        <logger name="ERROR_NOTIFICATION" level="ERROR" additivity="false">
-            <appender-ref ref="ASYNC_FALLBACK"/>
-        </logger>
-
-        <!-- 주문 알림 전용 logger -->
-        <logger name="ORDER_NOTIFICATION" level="INFO" additivity="false">
-            <appender-ref ref="ASYNC_ORDER"/>
-        </logger>
-
         <!-- marimo 애플리케이션 logger -->
         <logger name="com.marimo.server" level="DEBUG" additivity="false">
             <appender-ref ref="CONSOLE"/>
@@ -156,7 +139,7 @@
         </root>
     </springProfile>
 
-    <!-- 개발 환경 설정 -->
+    <!-- 로컬 환경 설정 -->
     <springProfile name="local">
         <!-- marimo 애플리케이션 logger -->
         <logger name="com.marimo.server" level="DEBUG" additivity="false">

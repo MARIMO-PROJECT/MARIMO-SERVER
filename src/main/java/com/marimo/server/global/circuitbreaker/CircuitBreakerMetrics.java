@@ -1,55 +1,53 @@
 package com.marimo.server.global.circuitbreaker;
 
-import java.time.Instant;
-import java.util.concurrent.atomic.AtomicLong;
 import lombok.Getter;
 
 @Getter
 public class CircuitBreakerMetrics {
 
-    private final AtomicLong totalCalls = new AtomicLong(0);
-    private final AtomicLong failedCalls = new AtomicLong(0);
-    private final AtomicLong successfulCalls = new AtomicLong(0);
-    private final AtomicLong consecutiveFailures = new AtomicLong(0);
-    private final AtomicLong consecutiveSuccesses = new AtomicLong(0);
+    private long totalCallCount;
+    private long failureCallCount;
+    private long successCallCount;
+    private long failureStreak;
+    private long successStreak;
 
-    private volatile Instant lastFailureTime;
-    private volatile Instant lastSuccessTime;
-    private volatile Instant lastStateChangeTime = Instant.now();
+    private long lastFailureAtMillis;
+    private long lastSuccessAtMillis;
+    private long lastStateChangeTimeMillis = System.currentTimeMillis();
 
     public void recordSuccess() {
-        totalCalls.incrementAndGet();
-        successfulCalls.incrementAndGet();
-        consecutiveSuccesses.incrementAndGet();
-        consecutiveFailures.set(0);
-        lastSuccessTime = Instant.now();
+        totalCallCount++;
+        successCallCount++;
+        successStreak++;
+        failureStreak = 0;
+        lastSuccessAtMillis = System.currentTimeMillis();
     }
 
     public void recordFailure() {
-        totalCalls.incrementAndGet();
-        failedCalls.incrementAndGet();
-        consecutiveFailures.incrementAndGet();
-        consecutiveSuccesses.set(0);
-        lastFailureTime = Instant.now();
+        totalCallCount++;
+        failureCallCount++;
+        failureStreak++;
+        successStreak = 0;
+        lastFailureAtMillis = System.currentTimeMillis();
     }
 
     public void recordStateChange() {
-        lastStateChangeTime = Instant.now();
+        lastStateChangeTimeMillis = System.currentTimeMillis();
     }
 
-    public double getFailureRate() {
-        long total = totalCalls.get();
-        if (total == 0) {
-            return 0.0;
-        }
-        return (double) failedCalls.get() / total;
+    public double failureRatio() {
+        return (totalCallCount == 0) ? 0.0 : (double) failureCallCount / totalCallCount;
+    }
+
+    public double failureRatePercent() {
+        return failureRatio() * 100.0;
     }
 
     public void reset() {
-        totalCalls.set(0);
-        failedCalls.set(0);
-        successfulCalls.set(0);
-        consecutiveFailures.set(0);
-        consecutiveSuccesses.set(0);
+        totalCallCount = 0;
+        failureCallCount = 0;
+        successCallCount = 0;
+        failureStreak = 0;
+        successStreak = 0;
     }
 }

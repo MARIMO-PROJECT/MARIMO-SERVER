@@ -21,4 +21,16 @@ public class AsyncConfig {
         executor.initialize();
         return executor;
     }
+
+    @Bean(name = "errorNotificationTaskExecutor")
+    public Executor errorNotificationTaskExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(1);        // 에러는 자주 발생하지 않으므로 1개로 시작
+        executor.setMaxPoolSize(3);         // 최대 3개로 충분
+        executor.setQueueCapacity(50);      // 에러 큐는 작게
+        executor.setThreadNamePrefix("ErrorNotification-");
+        executor.setRejectedExecutionHandler(new java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy());
+        executor.initialize();
+        return executor;
+    }
 }

@@ -1,6 +1,5 @@
 package com.marimo.server.global.circuitbreaker;
 
-import java.time.Instant;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -9,15 +8,7 @@ import lombok.Getter;
 public class CircuitBreakerStatus {
 
     private final CircuitBreakerState state;
-    private final long totalCalls;
-    private final long failedCalls;
-    private final long successfulCalls;
-    private final long consecutiveFailures;
-    private final long consecutiveSuccesses;
-    private final double failureRate;
-    private final Instant lastFailureTime;
-    private final Instant lastSuccessTime;
-    private final Instant lastStateChangeTime;
+    private final CircuitBreakerMetrics metrics;
 
     public String getStateDescription() {
         return switch (state) {

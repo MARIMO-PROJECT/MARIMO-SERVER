@@ -1,10 +1,14 @@
 package com.marimo.server.global.exception;
 
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+import com.marimo.server.global.event.ErrorEvent;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -17,8 +21,11 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.servlet.NoHandlerFoundException;
 
 @Slf4j
+@RequiredArgsConstructor
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private final ApplicationEventPublisher eventPublisher;
 
     // @Validated 유효성 검사 시 예외 처리
     @ExceptionHandler(ConstraintViolationException.class)
@@ -114,9 +121,9 @@ public class GlobalExceptionHandler {
 
     // 기타 에러 발생 시 예외 처리
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGeneralException(Exception e) {
+    public ResponseEntity<ErrorResponse> handleGeneralException(Exception e, HttpServletRequest request) {
+        eventPublisher.publishEvent(new ErrorEvent(e, request));
         log.error("알 수 없는 예외 발생: {}", e.getClass().getName(), e);
-        log.error("에러 메시지: {}", e.getMessage());
 
         return ResponseEntity
                 .status(ErrorType.INTERNAL_SERVER_ERROR.getHttpStatus())
