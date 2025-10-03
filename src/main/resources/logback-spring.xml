@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- 로그 출력 색상 설정 -->
+    <conversionRule conversionWord="clr" class="org.springframework.boot.logging.logback.ColorConverter"/>
+
+    <!-- 로그 출력 패턴 설정 -->
+    <property name="CONSOLE_LOG_PATTERN"
+              value="%clr(%d{yyyy-MM-dd HH:mm:ss.SSS, Asia/Seoul}){faint} %clr(%5level){} %clr(--- [%15.15thread] [%X{traceId:-NoTraceID}]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %msg%n"/>
+    <property name="FILE_LOG_PATTERN"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS, Asia/Seoul} %5level --- [%15.15thread] [%X{traceId:-NoTraceID}] %-40.40logger{39} : %msg%n"/>
+
+    <!-- 로그 파일 경로 설정 -->
+    <springProperty name="LOG_HOME_PATH" source="logging.location"/>
+    <property name="LOG_PATH" value="${LOG_HOME_PATH}/app-logs"/>
+    <property name="LOG_FILE" value="${LOG_PATH}/marimo.log"/>
+
+    <!-- 콘솔 로그 출력 설정 -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${CONSOLE_LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 파일 로그 출력 설정 -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_FILE}</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/%d{yyyy-MM}/marimo_%d{yyyy-MM-dd}_%i.log.gz</fileNamePattern>
+            <maxFileSize>10MB</maxFileSize>     <!-- 10MB 단위로 파일 분리 -->
+            <maxHistory>90</maxHistory>         <!-- 90일간 보관 -->
+            <totalSizeCap>1GB</totalSizeCap>    <!-- 전체 보관 용량 제한 -->
+        </rollingPolicy>
+        <encoder>
+            <charset>UTF-8</charset>
+            <pattern>${FILE_LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Discord & Slack 웹훅 URL 설정 -->
+    <springProperty name="PROD_ERROR_SLACK_WEBHOOK_URL" source="slack.webhook-url.prod.error"/>
+    <springProperty name="PROD_ERROR_DISCORD_WEBHOOK_URL" source="discord.webhook-url.prod.error"/>
+    <springProperty name="PROD_ORDER_NOTI_SLACK_WEBHOOK_URL" source="slack.webhook-url.prod.order"/>
+    <springProperty name="PROD_ORDER_NOTI_DISCORD_WEBHOOK_URL" source="discord.webhook-url.prod.order"/>
+    <springProperty name="DEV_ERROR_SLACK_WEBHOOK_URL" source="slack.webhook-url.dev.error"/>
+    <springProperty name="DEV_ERROR_DISCORD_WEBHOOK_URL" source="discord.webhook-url.dev.error"/>
+    <springProperty name="DEV_ORDER_NOTI_SLACK_WEBHOOK_URL" source="slack.webhook-url.dev.order"/>
+    <springProperty name="DEV_ORDER_NOTI_DISCORD_WEBHOOK_URL" source="discord.webhook-url.dev.order"/>
+
+    <!-- active profile에 따른 웹훅 URL 설정 -->
+    <springProfile name="prod">
+        <property name="SERVER_ERROR_SLACK_WEBHOOK_URL" value="${PROD_ERROR_SLACK_WEBHOOK_URL}"/>
+        <property name="SERVER_ERROR_DISCORD_WEBHOOK_URL" value="${PROD_ERROR_DISCORD_WEBHOOK_URL}"/>
+        <property name="ORDER_NOTI_SLACK_WEBHOOK_URL" value="${PROD_ORDER_NOTI_SLACK_WEBHOOK_URL}"/>
+        <property name="ORDER_NOTI_DISCORD_WEBHOOK_URL" value="${PROD_ORDER_NOTI_DISCORD_WEBHOOK_URL"/>
+    </springProfile>
+    <springProfile name="dev">
+        <property name="SERVER_ERROR_SLACK_WEBHOOK_URL" value="${DEV_ERROR_SLACK_WEBHOOK_URL}"/>
+        <property name="SERVER_ERROR_DISCORD_WEBHOOK_URL" value="${DEV_ERROR_DISCORD_WEBHOOK_URL}"/>
+        <property name="ORDER_NOTI_SLACK_WEBHOOK_URL" value="${DEV_ORDER_NOTI_SLACK_WEBHOOK_URL}"/>
+        <property name="ORDER_NOTI_DISCORD_WEBHOOK_URL" value="${DEV_ORDER_NOTI_DISCORD_WEBHOOK_URL}"/>
+    </springProfile>
+
+    <!-- 서킷 브레이커 설정 -->
+    <springProperty name="CIRCUIT_BREAKER_FAILURE_THRESHOLD" source="circuit-breaker.failure-threshold"/>
+    <springProperty name="CIRCUIT_BREAKER_SUCCESS_THRESHOLD" source="circuit-breaker.success-threshold"/>
+    <springProperty name="CIRCUIT_BREAKER_TIMEOUT_DURATION" source="circuit-breaker.timeout-duration"/>
+
+    <!-- 에러 알림 Appender 설정 -->
+    <appender name="FALLBACK_NOTIFICATION" class="com.marimo.server.global.logging.FallbackNotificationAppender">
+        <username>this-is-marimo-bot</username>
+        <avatarUrl>https://avatars.githubusercontent.com/u/81475587?v=4</avatarUrl>
+        <slackWebhookUrl>${SERVER_ERROR_SLACK_WEBHOOK_URL}</slackWebhookUrl>
+        <discordWebhookUrl>${SERVER_ERROR_DISCORD_WEBHOOK_URL}</discordWebhookUrl>
+        <failureThreshold>${CIRCUIT_BREAKER_FAILURE_THRESHOLD}</failureThreshold>
+        <successThreshold>${CIRCUIT_BREAKER_SUCCESS_THRESHOLD}</successThreshold>
+        <timeoutDuration>${CIRCUIT_BREAKER_TIMEOUT_DURATION}</timeoutDuration>
+    </appender>
+
+    <!-- 주문 알림 Appender 설정 -->
+    <appender name="ORDER_NOTIFICATION" class="com.marimo.server.global.logging.OrderNotificationAppender">
+        <username>this-is-marimo-bot</username>
+        <avatarUrl>https://avatars.githubusercontent.com/u/81475587?v=4</avatarUrl>
+        <slackWebhookUrl>${ORDER_NOTI_SLACK_WEBHOOK_URL}</slackWebhookUrl>
+        <discordWebhookUrl>${ORDER_NOTI_DISCORD_WEBHOOK_URL}</discordWebhookUrl>
+        <failureThreshold>${CIRCUIT_BREAKER_FAILURE_THRESHOLD}</failureThreshold>
+        <successThreshold>${CIRCUIT_BREAKER_SUCCESS_THRESHOLD}</successThreshold>
+        <timeoutDuration>${CIRCUIT_BREAKER_TIMEOUT_DURATION}</timeoutDuration>
+    </appender>
+
+    <!-- 에러 알림 비동기 처리 설정 -->
+    <appender name="ASYNC_FALLBACK" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="FALLBACK_NOTIFICATION"/>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>ERROR</level>
+        </filter>
+        <!-- 에러 알림은 버리지 않음 -->
+        <discardingThreshold>0</discardingThreshold>
+        <!-- 애플리케이션 종료 시 대기 시간 연장 (기본값: 1000ms) -->
+        <maxFlushTime>5000</maxFlushTime>
+    </appender>
+
+    <!-- 주문 알림 비동기 처리 설정 -->
+    <appender name="ASYNC_ORDER" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="ORDER_NOTIFICATION"/>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+        <!-- 주문 알림은 버리지 않음 -->
+        <discardingThreshold>0</discardingThreshold>
+        <!-- 애플리케이션 종료 시 대기 시간 연장 (기본값: 1000ms) -->
+        <maxFlushTime>5000</maxFlushTime>
+    </appender>
+
+    <!-- 운영 환경 설정 -->
+    <springProfile name="prod">
+        <!-- marimo 애플리케이션 logger -->
+        <logger name="com.marimo.server" level="INFO" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE"/>
+        </logger>
+
+        <!-- root(외부 라이브러리) logger -->
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE"/>
+        </root>
+    </springProfile>
+
+    <!-- 개발 환경 설정 -->
+    <springProfile name="dev">
+        <!-- marimo 애플리케이션 logger -->
+        <logger name="com.marimo.server" level="DEBUG" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+        </logger>
+
+        <!-- root(외부 라이브러리) logger -->
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
+
+    <!-- 로컬 환경 설정 -->
+    <springProfile name="local">
+        <!-- marimo 애플리케이션 logger -->
+        <logger name="com.marimo.server" level="DEBUG" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+        </logger>
+
+        <!-- root(외부 라이브러리) logger -->
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
+</configuration>

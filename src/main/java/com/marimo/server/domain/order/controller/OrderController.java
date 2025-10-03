@@ -7,10 +7,13 @@ import com.marimo.server.domain.order.dto.response.OrderResponse;
 import com.marimo.server.domain.order.dto.response.PresignedUrlListResponse;
 import com.marimo.server.domain.order.enums.AttachmentType;
 import com.marimo.server.domain.order.service.OrderService;
+import com.marimo.server.global.event.InvitationOrderCreatedEvent;
+import com.marimo.server.global.event.PreVideoOrderCreatedEvent;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -28,6 +31,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class OrderController {
 
     private final OrderService orderService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @GetMapping(path = "/mobile-invitations/validate")
     public ResponseEntity<Void> getUrlSlugValidation(
@@ -48,9 +52,12 @@ public class OrderController {
     public ResponseEntity<OrderResponse> createInvitationOrder(
             @Valid @RequestBody final InvitationOrderRequest request
     ) {
-        return ResponseEntity.ok(
-                orderService.createInvitationOrder(request)
-        );
+        OrderResponse orderResponse = orderService.createInvitationOrder(request);
+
+        // 🎯 이벤트 발행 (비동기 처리)
+        eventPublisher.publishEvent(new InvitationOrderCreatedEvent(request, orderResponse));
+
+        return ResponseEntity.ok(orderResponse);
     }
 
     @PostMapping(
@@ -61,9 +68,12 @@ public class OrderController {
     public ResponseEntity<OrderResponse> createPreVideoOrder(
             @Valid @RequestBody final PreVideoOrderRequest request
     ) {
-        return ResponseEntity.ok(
-                orderService.createPreVideoOrder(request)
-        );
+        OrderResponse orderResponse = orderService.createPreVideoOrder(request);
+
+        // 🎯 이벤트 발행 (비동기 처리)
+        eventPublisher.publishEvent(new PreVideoOrderCreatedEvent(request, orderResponse));
+
+        return ResponseEntity.ok(orderResponse);
     }
 
     @PostMapping(

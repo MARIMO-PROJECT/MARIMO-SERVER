@@ -20,23 +20,31 @@ public class S3Adapter {
     private final S3Presigner s3Presigner;
     private final S3Client s3Client;
 
-    public String issuePresignedUrl(String s3Key, FileType fileType) {
-        return issuePresignedUrl(s3Key, fileType.getMimeType(), Duration.ofMinutes(15));
+    public String issuePresignedUrl(final String s3Key, final FileType fileType) {
+        return issuePresignedUrl(
+                s3Key,
+                fileType.getMimeType(),
+                Duration.ofMinutes(15)
+        );
     }
 
-    public String issuePresignedUrl(String s3Key, String contentType, Duration ttl) {
-        PutObjectRequest por = PutObjectRequest.builder()
+    public String issuePresignedUrl(
+            final String s3Key,
+            final String contentType,
+            final Duration ttl
+    ) {
+        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                 .bucket(bucket)
                 .key(s3Key)
                 .contentType(contentType)
                 .build();
 
-        PresignedPutObjectRequest pre = s3Presigner.presignPutObject(
+        PresignedPutObjectRequest presignedPutObjectRequest = s3Presigner.presignPutObject(
                 b -> b
-                        .putObjectRequest(por)
+                        .putObjectRequest(putObjectRequest)
                         .signatureDuration(ttl)
         );
 
-        return pre.url().toString();
+        return presignedPutObjectRequest.url().toString();
     }
 }
